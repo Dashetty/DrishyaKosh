@@ -53,7 +53,7 @@ export function Frame({
       className="group relative mx-auto w-[calc(100vw-2.5rem)] lg:w-[calc(100vw-7rem)] will-change-transform"
       aria-label={`${video.title} — ${video.creator}, ${video.year}`}
     >
-      <div className="duotone relative aspect-video overflow-hidden rounded-[1.25rem] border border-hairline bg-ink-2 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)]">
+      <div className="duotone relative aspect-[2/1] overflow-hidden rounded-[1.25rem] border border-hairline bg-ink-2 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
