@@ -9,6 +9,7 @@ const SUBTITLES: Record<Reel["slug"], string> = {
   "reel-01": "DK-001 — DK-003 · OBJECTS & LETTERFORMS",
   "reel-02": "DK-004 — DK-006 · SOUND, SEEN",
   "reel-03": "DK-007 — DK-010 · THE FRAME ITSELF",
+  "reel-04": "DK-011 — DK-012 · SMALL STORIES, FULLY TOLD",
 };
 
 /** Large intertitle card between reels — "REEL 01 — DESIGN". */

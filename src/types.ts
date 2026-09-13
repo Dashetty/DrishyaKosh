@@ -1,4 +1,4 @@
-export type ReelSlug = "reel-01" | "reel-02" | "reel-03";
+export type ReelSlug = "reel-01" | "reel-02" | "reel-03" | "reel-04";
 
 export interface Reel {
   slug: ReelSlug;

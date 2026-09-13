@@ -15,6 +15,7 @@ export const reels: Reel[] = [
   { slug: "reel-01", number: "01", title: "Design" },
   { slug: "reel-02", number: "02", title: "Music" },
   { slug: "reel-03", number: "03", title: "Cinema" },
+  { slug: "reel-04", number: "04", title: "Short Films" },
 ];
 
 export const videos: Video[] = [
@@ -142,5 +143,31 @@ export const videos: Video[] = [
     duration: "1:59",
     curatorNote: "An elevator of blood as a marketing strategy.",
     catalogNumber: "DK-010",
+  },
+
+  // ————— REEL 04 — SHORT FILMS —————
+  {
+    id: "car-rains",
+    youtubeId: "acxz7hUwwEU",
+    title: "Every time I wash my car, it rains.",
+    creator: "Luda",
+    year: 2023,
+    genre: "Short Film",
+    reel: "reel-04",
+    duration: "11:10",
+    curatorNote: "A deadpan prophecy — the sky as an unpaid car-wash critic.",
+    catalogNumber: "DK-011",
+  },
+  {
+    id: "got-any-hobbies",
+    youtubeId: "NFm2Xjx61Q8",
+    title: '"Got any hobbies?"',
+    creator: "Luda",
+    year: 2023,
+    genre: "Short Film",
+    reel: "reel-04",
+    duration: "8:27",
+    curatorNote: "One question, and a whole life quietly unspooling from it.",
+    catalogNumber: "DK-012",
   },
 ];
