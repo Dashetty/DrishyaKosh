@@ -50,7 +50,7 @@ export function Frame({
     <article
       ref={ref}
       data-frame
-      className="group relative mx-auto w-[min(72rem,92vw)] will-change-transform"
+      className="group relative mx-auto w-[calc(100vw-2.5rem)] lg:w-[calc(100vw-7rem)] will-change-transform"
       aria-label={`${video.title} — ${video.creator}, ${video.year}`}
     >
       <div className="duotone relative aspect-video overflow-hidden rounded-[1.25rem] border border-hairline bg-ink-2 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)]">
@@ -69,11 +69,6 @@ export function Frame({
           {video.catalogNumber} · REEL {reelNumber}
         </p>
 
-        {/* genre tag · top-right */}
-        <p className="absolute right-5 top-5 z-10 rounded-full border border-hairline bg-ink/40 px-3.5 py-1.5 font-meta text-[0.55rem] tracking-[0.3em] text-bone-dim backdrop-blur-sm md:right-7 md:top-7">
-          {video.genre.toUpperCase()}
-        </p>
-
         {/* curator's pull-quote · right side (desktop) */}
         <blockquote className="absolute right-7 top-1/2 z-10 hidden max-w-[15rem] -translate-y-1/2 border-l border-amber/40 pl-5 lg:block">
           <span aria-hidden className="font-display text-3xl leading-none text-amber/70">
@@ -84,9 +79,13 @@ export function Frame({
           </p>
         </blockquote>
 
-        {/* title + credits row · bottom-left */}
+        {/* title scrim + credits · bottom */}
+        <div
+          aria-hidden
+          className="frame-scrim pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[42%]"
+        />
         <div className="absolute bottom-6 left-5 right-5 z-10 md:bottom-9 md:left-7">
-          <h3 className="font-display text-[clamp(1.9rem,4.2vw,3.9rem)] leading-[0.95] text-bone [text-shadow:0_2px_18px_rgba(10,9,8,0.8)]">
+          <h3 className="font-meta text-[clamp(1.5rem,3vw,2.6rem)] leading-tight text-bone [text-shadow:0_2px_18px_rgba(10,9,8,0.8)]">
             {video.title}
           </h3>
           <ul className="mt-3 flex flex-wrap items-center gap-x-0 gap-y-1 font-meta text-[0.58rem] tracking-[0.3em] text-bone-dim">
