@@ -73,7 +73,9 @@ export function WatchModal({
 
           <div className="mt-4 flex flex-wrap items-baseline justify-between gap-3">
             <div>
-              <h3 className="font-display text-xl leading-tight">{video.title}</h3>
+              <h3 className="font-meta text-xl uppercase tracking-[0.02em] leading-tight [text-wrap:balance]">
+                {video.title}
+              </h3>
               <p className="mt-1 font-meta text-[0.55rem] tracking-[0.3em] text-smoke">
                 {video.creator.toUpperCase()} · {video.year}
               </p>

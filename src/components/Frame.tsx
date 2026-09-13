@@ -85,13 +85,13 @@ export function Frame({
           className="frame-scrim pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[42%]"
         />
         <div className="absolute bottom-6 left-5 right-5 z-10 md:bottom-9 md:left-7">
-          <h3 className="font-meta text-[clamp(1.5rem,3vw,2.6rem)] leading-tight text-bone [text-shadow:0_2px_18px_rgba(10,9,8,0.8)]">
+          <h3 className="font-meta text-[clamp(1.35rem,2.8vw,2.4rem)] uppercase leading-[1.15] tracking-[0.04em] text-bone [text-wrap:balance] [text-shadow:0_2px_18px_rgba(10,9,8,0.8)]">
             {video.title}
           </h3>
           <ul className="mt-3 flex flex-wrap items-center gap-x-0 gap-y-1 font-meta text-[0.58rem] tracking-[0.3em] text-bone-dim">
             <li className="uppercase">{video.creator}</li>
             <li aria-hidden className="mx-3 h-3 w-px bg-hairline" />
-            <li>{video.year}</li>
+            <li className="tabular-nums">{video.year}</li>
             <li aria-hidden className="mx-3 h-3 w-px bg-hairline" />
             <li className="uppercase">{video.genre}</li>
           </ul>
