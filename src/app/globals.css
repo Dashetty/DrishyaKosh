@@ -1,26 +1,247 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ---------------------------------------------------------------------------
+   DrishyaKosh — global aesthetic
+   near-black · warm bone · archival film stock
+--------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Maghfirea";
+  src: url("/fonts/maghfirea.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "NeueBrucke";
+  src: url("/fonts/neue-brucke.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "NB International";
+  src: url("/fonts/nb-international.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "P22 Parrish Roman";
+  src: url("/fonts/p22-parrish-roman.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal; /* italic is synthesized (oblique) — only face provided */
+  font-display: swap;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+  --color-ink: #0a0908;
+  --color-ink-2: #14110d;
+  --color-bone: #e8e0cf;
+  --color-bone-dim: #b3a892;
+  --color-smoke: #7d7466;
+  --color-amber: #c9a26a;
+  --color-hairline: rgba(232, 224, 207, 0.16);
+
+  --font-display: "Maghfirea", "Iowan Old Style", Georgia, serif;
+  --font-meta: "NeueBrucke", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-body: "NB International", "Helvetica Neue", Arial, sans-serif;
+  --font-quote: "P22 Parrish Roman", Palatino, Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--color-ink);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-smoke) var(--color-ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ink);
+  color: var(--color-bone);
+  font-family: var(--font-body);
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--color-amber);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 1px solid var(--color-amber);
+  outline-offset: 3px;
+}
+
+/* Full-aperture cursor — native cursor hidden on fine pointers only */
+@media (pointer: fine) {
+  html,
+  body,
+  a,
+  button,
+  [data-frame],
+  dialog {
+    cursor: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Projector motion
+--------------------------------------------------------------------------- */
+
+/* Fixed grain sheet — oversized, stepped translation = authentic flicker */
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  12.5%    { transform: translate(-3%, -6%); }
+  25%      { transform: translate(4%, 2%); }
+  37.5%    { transform: translate(-2%, 5%); }
+  50%      { transform: translate(6%, -3%); }
+  62.5%    { transform: translate(-5%, 3%); }
+  75%      { transform: translate(2%, 6%); }
+  87.5%    { transform: translate(5%, -5%); }
+}
+
+/* Projector lamp breathes — slow, irregular, never smooth */
+@keyframes flicker {
+  0%   { opacity: 1; }
+  7%   { opacity: 0.992; }
+  9%   { opacity: 1; }
+  23%  { opacity: 0.985; }
+  24%  { opacity: 0.996; }
+  38%  { opacity: 1; }
+  53%  { opacity: 0.988; }
+  54%  { opacity: 1; }
+  71%  { opacity: 0.986; }
+  72%  { opacity: 0.995; }
+  88%  { opacity: 0.99; }
+  89%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+/* Drifting light leak in the hero */
+@keyframes leak {
+  0%   { transform: translate(-12%, -6%) scale(1);    opacity: 0.5; }
+  50%  { transform: translate(14%, 8%) scale(1.25);  opacity: 0.85; }
+  100% { transform: translate(-8%, 12%) scale(1.05); opacity: 0.6; }
+}
+
+/* Scroll cue */
+@keyframes cue {
+  0%   { transform: scale(0.6); opacity: 0.9; }
+  70%  { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* Loader: sprocket crawl + beam shimmer */
+@keyframes crawl {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-48px); }
+}
+@keyframes beam {
+  0%, 100% { opacity: 0.75; }
+  45%      { opacity: 1; }
+  60%      { opacity: 0.85; }
+}
+
+.anim-grain   { animation: grain 0.9s steps(8, end) infinite; }
+.anim-flicker { animation: flicker 9s linear infinite; }
+.anim-leak    { animation: leak 18s ease-in-out infinite alternate; }
+.anim-cue     { animation: cue 2.2s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
+.anim-beam    { animation: beam 1.6s steps(3, end) infinite; }
+.anim-crawl   { animation: crawl 0.9s steps(6, end) infinite; }
+
+/* Projector hold — the film stops while the lightbox is open */
+.projector-hold .anim-grain,
+.projector-hold .anim-flicker,
+.projector-hold .anim-leak {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-grain,
+  .anim-flicker,
+  .anim-leak,
+  .anim-cue,
+  .anim-crawl,
+  .anim-beam {
+    animation: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Film treatments
+--------------------------------------------------------------------------- */
+
+/* Duotone grade — one film stock across the whole archive; lifts on hover */
+.duotone img {
+  filter: grayscale(1) sepia(0.32) contrast(1.05) brightness(0.8) saturate(0.92);
+  transition: filter 0.55s ease, transform 0.8s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+.duotone:hover img,
+.duotone:focus-within img {
+  filter: none;
+  transform: scale(1.015);
+}
+.duotone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    120% 90% at 50% 45%,
+    transparent 52%,
+    rgba(10, 9, 8, 0.55) 88%,
+    rgba(10, 9, 8, 0.82) 100%
+  );
+  pointer-events: none;
+}
+
+/* Ticket-stub notches on the WATCH button */
+.ticket-stub {
+  mask-image: radial-gradient(circle 4px at 0 50%, transparent 98%, black),
+    radial-gradient(circle 4px at 100% 50%, transparent 98%, black);
+  mask-composite: intersect;
+  -webkit-mask-image: radial-gradient(circle 4px at 0 50%, transparent 98%, black),
+    radial-gradient(circle 4px at 100% 50%, transparent 98%, black);
+  -webkit-mask-composite: source-in;
+}
+
+/* Hairline rules */
+.hairline-t { border-top: 1px solid var(--color-hairline); }
+.hairline-b { border-bottom: 1px solid var(--color-hairline); }
+
+/* Sprocket rail — rounded holes repeating down the viewport edges */
+.sprocket-rail {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='36' viewBox='0 0 14 36'%3E%3Crect x='1.5' y='10' width='11' height='16' rx='3.5' fill='%23e8e0cf' fill-opacity='0.13'/%3E%3C/svg%3E");
+  background-repeat: repeat-y;
+  background-position: center top;
+}
+
+/* ---------------------------------------------------------------------------
+   Scroll & overlay behaviour
+--------------------------------------------------------------------------- */
+
+/* Intro lock — set pre-paint by the inline script in layout.tsx */
+html.intro-pending {
+  overflow: hidden;
+}
+[data-intro-overlay] {
+  display: none;
+}
+html.intro-pending [data-intro-overlay] {
+  display: flex;
+}
+
+/* Touch devices: native scroll-snap settling (Lenis stands down on touch) */
+@media (pointer: coarse) {
+  html {
+    scroll-snap-type: y proximity;
+  }
+  [data-snap-point] {
+    scroll-snap-align: center;
+  }
+}
+
+/* Watch lightbox backdrop */
+dialog::backdrop {
+  background: rgba(10, 9, 8, 0.85);
+  backdrop-filter: blur(4px);
 }

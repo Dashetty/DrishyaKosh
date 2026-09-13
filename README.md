@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DrishyaKosh
 
-## Getting Started
+**A personal archive of moving pictures — handpicked, not algorithmic.**
 
-First, run the development server:
+A curated archive of YouTube videos presented as one continuous film reel:
+near-black, grainy, warm, archival. Every video is a **Frame** (film-poster
+treatment with a curator's pull-quote); frames are grouped into themed
+**Reels** introduced by silent-film **Intertitles**. Loading threads the
+projector once per session; scrolling pulls the film through the gate.
+
+Stack: Next.js (App Router) · React · TypeScript · GSAP + ScrollTrigger ·
+Lenis · Tailwind v4. No UI component libraries (BeUI is an approved
+copy-paste source for later motion primitives — see below).
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev        # http://localhost:3000
+pnpm build      # production build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Script | What it does |
+|---|---|
+| `pnpm dev` / `pnpm build` | dev server / production build |
+| `pnpm verify:videos` | checks every `youtubeId` in `src/data/videos.ts` against YouTube's oEmbed endpoint. **Standalone — never part of the build.** |
+| `pnpm make:og` | regenerates `public/og.jpg` (1200×630 duotone-graded still + wordmark). One-off, run manually. |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Fonts
 
-## Learn More
+The four faces live in `public/fonts/` as woff2 (converted from the TTFs in
+`DrishyaFonts/`), loaded via `@font-face` with `font-display: swap`:
 
-To learn more about Next.js, take a look at the following resources:
+| Face | Role |
+|---|---|
+| Maghfirea | wordmark, reel titles, frame titles — never body text |
+| NeueBrucke | metadata: catalog numbers, credits rows, tags, buttons |
+| NB International | body: notes, nav, durations |
+| P22 Parrish Roman | curator's pull-quote (italic is synthesized — only the roman face exists) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Data
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`src/data/videos.ts` holds the archive: `{ id, youtubeId, title, creator,
+year, genre, reel, duration, curatorNote, catalogNumber }` plus a `reels`
+array. Structured for a future CMS swap — replace the array's source with a
+fetch, keep the shape.
 
-## Deploy on Vercel
+**The curator's notes are placeholders**, written to keep frames legible
+during the build. They are the soul of the site — replace each one in
+`videos.ts` (clearly marked at the top of the file).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Behaviour notes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Watch = embed modal** (`youtube-nocookie`, paused until play, ESC/backdrop
+  closes, "open on YouTube ↗" inside). While open the site enters a
+  **projector hold**: grain and flicker pause, scroll locks.
+- **Film-roll scroll**: velocity skews the strip ±1.5°; on fine pointers the
+  strip settles to the nearest frame via Lenis `scrollTo` after rest. Touch
+  devices use native CSS scroll-snap. Rationale: `docs/adr/0001-film-roll-settling.md`.
+- **Loading intro** runs once per session (`sessionStorage`), click skips it,
+  and `prefers-reduced-motion` disables it plus skew, flicker, and grain
+  animation.
+- **Mobile**: frames near-full-width, sprockets/cursor hidden, curator's note
+  tap-to-reveal below the frame.
+
+## Decisions log
+
+- BeUI (beui.dev) approved as a **copy-paste source only** (via shadcn CLI,
+  imported per-component) for three named primitives when needed: Morphing
+  Modal (watch lightbox), text reveal (loader), magnetic button (WATCH CTA).
+  Never a blanket dependency.
+- Domain vocabulary: `CONTEXT.md`. Decisions: `docs/adr/`.
