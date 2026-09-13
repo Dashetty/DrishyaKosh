@@ -1,0 +1,166 @@
+[
+  {
+    "id": 0,
+    "title": "Savoy",
+    "eyebrow": "Documentary",
+    "image": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/675eb91e5fafbd1f37953c10_savoy.webp",
+    "award": {
+      "year": "2022",
+      "headline": "Best Director & Editing Award",
+      "logo": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/679211be9a26425f2f94212a_JFF.webp"
+    },
+    "details": {
+      "director": "Zohar Wagner",
+      "year": "2022",
+      "category": "Documentary"
+    },
+    "reviews": [
+      "\"Fast-paced and engrossing\"",
+      "\"History through a heroine\"",
+      "\"Brave, poetic, liberated\""
+    ]
+  },
+  {
+    "id": 1,
+    "title": "Moon in the 12th House",
+    "eyebrow": "Feature Film",
+    "image": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/67923c109ebd8d8a03e4960c_moon.jpg",
+    "award": {
+      "year": "2014",
+      "headline": "Jerusalem Film Festival",
+      "logo": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/679211be9a26425f2f94212a_JFF.webp"
+    },
+    "details": {
+      "director": "Dorit Hakim Kramer",
+      "year": "2014",
+      "category": "Feature Film"
+    },
+    "reviews": [
+      "\"BreathtakiNg cinematography\"",
+      "\"Delicate and moving\"",
+      "\"Pure cinematic beauty\""
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Taboo",
+    "eyebrow": "Documentary",
+    "image": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/675eb903f604a7a856c87467_taboo.webp",
+    "award": {
+      "year": "2024",
+      "headline": "World Premiere",
+      "logo": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/678e53c20255431b422d2a82_International%20Film%20Festival%20Rotterdam.webp"
+    },
+    "details": {
+      "director": "Shauly Melamed",
+      "year": "2024",
+      "category": "Documentary"
+    },
+    "reviews": [
+      "\"Touching and intimate\"",
+      "\"Groundbreaking LGBTQ+ cinema\"",
+      "\"Confronting cultural taboos\""
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Kafka's Last Trial",
+    "eyebrow": "Documentary",
+    "image": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/67923c37a45465ae82ee3f8b_kafka.jpg",
+    "award": {
+      "year": "2024",
+      "headline": "Haifa Film Festival",
+      "logo": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/679207ea247d7e0f606ff70d_attachment%201.webp"
+    },
+    "details": {
+      "director": "Eliran Peled",
+      "year": "2025",
+      "category": "Documentary"
+    },
+    "reviews": [
+      "\"A genius nowhere at home\"",
+      "\"A real-life Kafkaesque trial\"",
+      "\"The case of a literary legacy\""
+    ]
+  },
+  {
+    "id": 4,
+    "title": "My Project X",
+    "eyebrow": "Documentary",
+    "image": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/67923c1fa550c616a38131b9_project.jpg",
+    "award": {
+      "year": "2024",
+      "headline": "National competition of Docaviv",
+      "logo": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/678e5718a9496c3b77c64191_DOCAVIV.webp"
+    },
+    "details": {
+      "director": "Limor Pinhasov",
+      "year": "2024",
+      "category": "Documentary"
+    },
+    "reviews": [
+      "\u201cA fascinating Voyage\u201d",
+      "\"A Film based on a true story\"",
+      "\u201cRiveting Soundtrack\u201d"
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Ana Maxim",
+    "eyebrow": "Short Film",
+    "image": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/67923c551123732db723b050_ana.jpg",
+    "award": {
+      "year": "2024",
+      "headline": "The Cinema South Film Festival",
+      "logo": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/678e53fbd679a4bb8301a33a_Cinema%20South%20Festival.webp"
+    },
+    "details": {
+      "director": "Yoni Handelsman",
+      "year": "2024",
+      "category": "Short Film"
+    },
+    "reviews": [
+      "\"Inspiring true story\"",
+      "\"Best Feature Film at Pomegranate Festival\"",
+      "\"Emotional and powerful portrayal\""
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Outsider Freud",
+    "eyebrow": "Documentary",
+    "image": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/67923c44b96499e7828b3f02_freud.jpg",
+    "award": {
+      "year": "2024",
+      "headline": "",
+      "logo": "https://cdn.prod.website-files.com/6728a72e769070a603d43c13/673757a6e5e1b7a35e562945_cannes.png"
+    },
+    "details": {
+      "director": "Yair Qedar",
+      "year": "2025",
+      "category": "Documentary"
+    },
+    "reviews": [
+      "\"A journey into Freud's life\"",
+      "\u201cexperience of marginalization\u201d",
+      "\u201cDimensions of Freud's legacy\""
+    ]
+  },
+  {
+    "id": 7,
+    "title": "By Any Means",
+    "eyebrow": "Feature Film",
+    "image": "https://cdn.prod.website-files.com/673306db3b111afa559bc378/6a57521a66d01829a49634b6_6a2904197526731405fcce8a_BYANYMEANS_2024-04-28_EJA-02511_R1.webp",
+    "award": {
+      "year": "2026",
+      "headline": "",
+      "logo": "https://cdn.prod.website-files.com/6728a72e769070a603d43c13/673757a6e5e1b7a35e562945_cannes.png"
+    },
+    "details": {
+      "director": "Elegance Bratton",
+      "year": "2026",
+      "category": "Feature Film"
+    },
+    "reviews": []
+  }
+]

@@ -53,17 +53,26 @@ during the build. They are the soul of the site — replace each one in
 
 ## Behaviour notes
 
+- **The Drum (ADR-0002/0003)**: scrolling into the archive pins a
+  full-viewport stage — wheel, drag, or arrow keys roll the active Reel's
+  loop (its Intertitle + Frames) with infinite wrap, lerped inertia
+  (siena.film constants), siena parallax layers (catalog corner 120%,
+  title+credits 150%, curator quote 25%, poster + WATCH anchored), and
+  velocity motion blur on the frames layer (≤8px, off on touch).
+- **The Rail** (fixed top-center, fused with the HUD): Reel tabs switch
+  reels — landing on the target Reel's Intertitle with a full physics reset.
+  The HUD shows the current card's catalog number and position with
+  progress ticks. "END OF REEL ↓" exits to the footer from any reel;
+  scrolling up on Reel 01's Intertitle unpins back to the hero.
+- **Reduced motion**: the drum never mounts — the real-scrolling archive
+  (Lenis + settle-snap, ADR-0001) serves instead.
 - **Watch = embed modal** (`youtube-nocookie`, paused until play, ESC/backdrop
   closes, "open on YouTube ↗" inside). While open the site enters a
   **projector hold**: grain and flicker pause, scroll locks.
-- **Film-roll scroll**: velocity skews the strip ±1.5°; on fine pointers the
-  strip settles to the nearest frame via Lenis `scrollTo` after rest. Touch
-  devices use native CSS scroll-snap. Rationale: `docs/adr/0001-film-roll-settling.md`.
-- **Loading intro** runs once per session (`sessionStorage`), click skips it,
-  and `prefers-reduced-motion` disables it plus skew, flicker, and grain
-  animation.
-- **Mobile**: frames near-full-width, sprockets/cursor hidden, curator's note
+- **Mobile**: same drum — vertical swipe rolls it; blur off; curator's note
   tap-to-reveal below the frame.
+- Verify all of the above: `node scripts/drum-regression.mjs` (needs the dev
+  server running; uses headless Chromium via @playwright/test).
 
 ## Decisions log
 

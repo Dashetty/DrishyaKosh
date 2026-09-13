@@ -1,0 +1,6 @@
+{
+  "name": "Pixel Transition Replicator",
+  "description": "Pixel-perfect section and transition replica interface with interactive controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

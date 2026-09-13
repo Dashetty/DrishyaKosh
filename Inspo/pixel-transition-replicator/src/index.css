@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Neue Brucke';
+  src: url('/fonts/NeueBrucke-Regular.ttf') format('truetype'),
+       url('https://cdn.prod.website-files.com/6728a72e769070a603d43c13/6732067e9b97847ee71dc3ce_NeueBrucke-Regular.ttf') format('truetype');
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Parrish Roman';
+  src: url('/fonts/P22-Parrish-Roman.ttf') format('truetype'),
+       url('https://cdn.prod.website-files.com/6728a72e769070a603d43c13/673206990534c63071d1887d_P22%20Parrish%20Roman.ttf') format('truetype');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NB International';
+  src: url('/fonts/NB-International-Regular.ttf') format('truetype'),
+       url('https://cdn.prod.website-files.com/6728a72e769070a603d43c13/6732069959125d0789024f2c_NB%20International%20Regular.ttf') format('truetype');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --black: #000000;
+  --white: #faf7ef;
+  --white-30: rgba(250, 247, 239, 0.3);
+  --white-10: rgba(250, 247, 239, 0.1);
+  --gold: #ffc700;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000000;
+  color: #faf7ef;
+  font-family: 'NB International', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-neue {
+  font-family: 'Neue Brucke', 'Arial Black', Impact, sans-serif;
+}
+
+.font-parrish {
+  font-family: 'P22 Parrish Roman', Georgia, serif;
+}
+
+.font-nb {
+  font-family: 'NB International', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+

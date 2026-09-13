@@ -19,7 +19,8 @@ field is `curatorNote`; do not introduce a separate "quote" concept.
 
 **Frame** — the core unit: one video presented as a film poster (graded
 thumbnail, overlapped title, credits row, catalog corner, genre tag,
-Pull-quote, WATCH ticket stub). Ten Frames in the sample archive.
+Pull-quote, WATCH ticket stub). Twelve Frames in the sample archive, three to
+four per Reel.
 
 **Reel** — a curated group of Frames with a theme ("Reel 01 — Design"). A
 Reel opens with an Intertitle card. Not a "category" or "playlist" — the word
@@ -38,7 +39,38 @@ reveal original color. Do not apply per-video filters — one stock, everywhere.
 
 **Film-roll Scroll** — the signature scroll behaviour: velocity-driven
 skew/rotation of the strip, settling one Frame at a time through the "gate"
-(settle-snap on fine pointers, native CSS snap on touch).
+(settle-snap on fine pointers, native CSS snap on touch). Do not apply while
+the Drum is mounted.
+
+**Drum** — the infinite virtual carousel the archive scrolls *into*: a pinned
+full-viewport stage where wheel, drag, and arrow keys drive a virtual
+position instead of the document, cards wrap infinitely in both directions
+(circular modulo), and Layered Parallax + Motion Blur run during motion.
+Its loop is bounded per Reel (see Rail): the active Reel's Intertitle and
+Frames wrap first-to-last and back, never crossing into another Reel.
+Intertitles are Drum items like Frames. The Film-roll Scroll (and Lenis)
+stand down while the Drum is pinned; they resume when it unpins. Mounts only
+when motion is allowed — under reduced motion the archive falls back to
+Film-roll Scroll.
+
+**Rail** — the explicit horizontal navigation between Reels, fused with the
+Drum HUD: Reel names in a row (active distinct) beside the catalog readout
+and progress ticks, plus the permanent footer exit. Switching Reels via the
+Rail lands on the target Reel's Intertitle, plays as a canister-swap wipe,
+and fully resets the Drum's physics state. There is no auto-continue from
+the end of one Reel's loop into another — only the Rail crosses Reels.
+
+**Layered Parallax** — inside a Drum card, each element layer slides at its
+own rate relative to the card's distance from centre (poster anchored;
+catalog corner 120%; title + credits 150%; curator quote 25%; interactive
+controls anchored). Rates measured in % of card offset, after siena.film.
+
+**Motion Blur** — the velocity-driven lens blur on the Drum's frame layer
+during flicks and fast drags (clamped 8px; off on touch and under reduced
+motion).
+
+**Drum HUD** — the fixed top-centre readout while the Drum is pinned: current
+card's Catalog Number and title, position in the loop, progress ticks.
 
 **Projector Hold** — the paused state while the Watch lightbox is open: grain
 and flicker freeze, scroll locks. The projector has stopped; the film is

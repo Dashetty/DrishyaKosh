@@ -8,6 +8,7 @@ import { useLenisInstance } from "@/lib/smooth-scroll";
 import { Intertitle } from "./Intertitle";
 import { Frame } from "./Frame";
 import { WatchModal } from "./WatchModal";
+import { DrumStage } from "./DrumStage";
 
 /**
  * The film reel — all reels and frames in one vertical strip.
@@ -18,8 +19,19 @@ import { WatchModal } from "./WatchModal";
  */
 export function ReelStrip({ videos, reels }: { videos: Video[]; reels: Reel[] }) {
   const stripRef = useRef<HTMLDivElement>(null);
+  const drumAnchorRef = useRef<HTMLElement>(null);
   const lenis = useLenisInstance();
   const [watching, setWatching] = useState<Video | null>(null);
+  const [motionAllowed, setMotionAllowed] = useState(false);
+
+  // the Drum only mounts when motion is allowed (ADR-0002 D9 fallback)
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setMotionAllowed(!mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   // velocity → skew/rotate (film pulling through the gate)
   useEffect(() => {
@@ -103,8 +115,48 @@ export function ReelStrip({ videos, reels }: { videos: Video[]; reels: Reel[] })
     };
   }, [lenis]);
 
+  // the scroll-mode archive stands down while the drum is pinned
+  // (gsap skew + settle-snap stop responding; the DOM stays for fallback)
+  useEffect(() => {
+    const deactivate = () => stripRef.current?.classList.add("drum-standby");
+    const activate = () => stripRef.current?.classList.remove("drum-standby");
+    window.addEventListener("dk:drum:pin", deactivate);
+    window.addEventListener("dk:drum:unpin", activate);
+    return () => {
+      window.removeEventListener("dk:drum:pin", deactivate);
+      window.removeEventListener("dk:drum:unpin", activate);
+    };
+  }, []);
+
+  const unpinDrum = () => {
+    window.dispatchEvent(new CustomEvent("dk:drum:unpin"));
+    lenis?.start();
+  };
+
+  // the stage's footer exit asks the host to ease down once it has unpinned
+  useEffect(() => {
+    const onScrollTo = (e: Event) => {
+      const target = (e as CustomEvent<number>).detail ?? document.body.scrollHeight;
+      if (lenis) {
+        lenis.scrollTo(target, { duration: 1.2 });
+      } else {
+        window.scrollTo({ top: target, behavior: "smooth" });
+      }
+    };
+    window.addEventListener("dk:drum:scroll-to", onScrollTo);
+    return () => window.removeEventListener("dk:drum:scroll-to", onScrollTo);
+  }, [lenis]);
+
   return (
     <>
+      {/* drum mount anchor: a full-viewport sentinel at the archive's start —
+          scrolling from the hero crosses it and pins the drum */}
+      <section
+        ref={drumAnchorRef}
+        aria-hidden
+        className="h-[100svh] w-full"
+      />
+
       <div
         ref={stripRef}
         className="snap-strip relative will-change-transform"
@@ -131,6 +183,17 @@ export function ReelStrip({ videos, reels }: { videos: Video[]; reels: Reel[] })
           </Fragment>
         ))}
       </div>
+
+      {motionAllowed && (
+        <DrumStage
+          anchorRef={drumAnchorRef}
+          onUnpin={unpinDrum}
+          onExitToFooter={() => {
+            /* handled inside the stage via dk:drum:scroll-to */
+          }}
+          onWatch={setWatching}
+        />
+      )}
 
       <WatchModal video={watching} onClose={() => setWatching(null)} />
     </>

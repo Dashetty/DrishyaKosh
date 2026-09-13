@@ -34,8 +34,16 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
     // publish async so children re-render with the instance in hand
     const id = setTimeout(() => setLenis(instance), 0);
 
+    // the Drum pins → Lenis stands down; unpins → resumes (ADR-0002)
+    const onPin = () => instance.stop();
+    const onUnpin = () => instance.start();
+    window.addEventListener("dk:drum:pin", onPin);
+    window.addEventListener("dk:drum:unpin", onUnpin);
+
     return () => {
       clearTimeout(id);
+      window.removeEventListener("dk:drum:pin", onPin);
+      window.removeEventListener("dk:drum:unpin", onUnpin);
       gsap.ticker.remove(raf);
       instance.destroy();
       setLenis(null);

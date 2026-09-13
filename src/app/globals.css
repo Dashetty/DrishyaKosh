@@ -257,3 +257,28 @@ dialog::backdrop {
   background: rgba(10, 9, 8, 0.85);
   backdrop-filter: blur(4px);
 }
+
+/* ---------------------------------------------------------------------------
+   The Drum (ADR-0002/0003) — pinned stage + scroll-mode standby
+--------------------------------------------------------------------------- */
+
+/* while the drum is pinned: the document is parked; the stage owns input */
+html.drum-pinned {
+  overflow: hidden;
+  touch-action: none;
+}
+
+.drum-stage {
+  touch-action: none;
+  background: var(--color-ink);
+  cursor: grab;
+}
+.drum-stage:active {
+  cursor: grabbing;
+}
+
+/* scroll-mode archive stands down while the drum owns the screen: hide the
+   strip behind the stage (it stays mounted as the reduced-motion fallback) */
+.drum-standby {
+  visibility: hidden;
+}
