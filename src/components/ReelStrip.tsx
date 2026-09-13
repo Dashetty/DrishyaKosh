@@ -43,37 +43,62 @@ export function ReelStrip({ videos, reels }: { videos: Video[]; reels: Reel[] })
     return () => st.kill();
   }, []);
 
-  // settle-snap: after the scroll rests, ease to the nearest frame (Lenis only)
+  // settle-snap: after the scroll truly comes to rest, ease to the nearest frame (Lenis only)
   useEffect(() => {
     const strip = stripRef.current;
     if (!strip || !lenis) return;
 
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let snapping = false;
+
     const onScroll = () => {
+      if (snapping) return; // our own scrollTo must not re-arm the debounce
       if (timer) clearTimeout(timer);
+      // only snap once Lenis reports a full stop — not mid-glide
       timer = setTimeout(() => {
-        if (document.documentElement.classList.contains("projector-hold")) return;
-        const mid = window.scrollY + window.innerHeight / 2;
+        if (
+          document.documentElement.classList.contains("projector-hold") ||
+          lenis.isScrolling
+        ) {
+          return;
+        }
+        const mid = window.innerHeight / 2;
         let best: { dist: number } | null = null;
         strip.querySelectorAll<HTMLElement>("[data-frame]").forEach((el) => {
-          const center = el.offsetTop + el.offsetHeight / 2;
+          // viewport-relative geometry — offsetTop is strip-relative, not document-relative
+          const center = el.getBoundingClientRect().top + el.offsetHeight / 2;
           const dist = center - mid;
-          if (!best || Math.abs(dist) < Math.abs(best.dist)) best = { dist };
+          if (!best || Math.abs(dist) < Math.abs(best.dist)) {
+            best = { dist };
+          }
         });
         if (!best) return;
         const { dist } = best;
         if (Math.abs(dist) > 8 && Math.abs(dist) < window.innerHeight * 0.45) {
+          snapping = true;
           lenis.scrollTo(window.scrollY + dist, {
             duration: 0.65,
             easing: (t: number) => 1 - Math.pow(1 - t, 3),
+            // re-arm on completion; user input clears the flag immediately
+            onComplete: () => {
+              snapping = false;
+            },
           });
         }
       }, 150);
     };
 
+    const onUserInput = () => {
+      snapping = false;
+      lenis.off("scroll", onScroll);
+      lenis.on("scroll", onScroll);
+    };
+
     lenis.on("scroll", onScroll);
+    window.addEventListener("wheel", onUserInput, { passive: true });
     return () => {
       lenis.off("scroll", onScroll);
+      window.removeEventListener("wheel", onUserInput);
       if (timer) clearTimeout(timer);
     };
   }, [lenis]);
