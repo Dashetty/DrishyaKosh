@@ -128,6 +128,21 @@ export function ReelStrip({ videos, reels }: { videos: Video[]; reels: Reel[] })
     };
   }, []);
 
+  // clear the re-pin suppression flag once we're past the pin zone
+  // (the sentinel's bottom has scrolled completely off screen)
+  useEffect(() => {
+    const anchor = drumAnchorRef.current;
+    if (!anchor) return;
+    const clearOnUnpin = () => {
+      const rect = anchor.getBoundingClientRect();
+      if (rect.bottom < 0) {
+        window.dispatchEvent(new CustomEvent("dk:drum:clear-suppress"));
+      }
+    };
+    window.addEventListener("dk:drum:unpin", clearOnUnpin);
+    return () => window.removeEventListener("dk:drum:unpin", clearOnUnpin);
+  }, []);
+
   const unpinDrum = () => {
     window.dispatchEvent(new CustomEvent("dk:drum:unpin"));
     lenis?.start();

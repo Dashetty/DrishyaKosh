@@ -36,7 +36,7 @@ export function DrumStage({
   const [activeIndex, setActiveIndex] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   // resetTo ref: the seam listener stays unbound from `drum` identity churn
-  const drumResetRef = useRef<(() => void) | null>(null);
+  const drumResetRef = useRef<((index?: number) => void) | null>(null);
 
   // active reel's loop: [intertitle, ...frames] — derived state, not ref.
   // activeIndex clamped to the loop: a reel switch resets it in the same
@@ -91,9 +91,11 @@ export function DrumStage({
 
   // the engine's unpin-at-top boundary: wheel-up past the loop's first card.
   // Event-based (not a ref-threaded callback) so the freshest listener always
-  // handles it, regardless of StrictMode remounts.
+  // handles it, regardless of StrictMode remounts. Arms the suppression
+  // flag so the seam listener does not re-pin during the unpin glide.
   useEffect(() => {
     const onUnpinAtTop = () => {
+      window.dispatchEvent(new CustomEvent("dk:drum:intentional-unpin"));
       setPinned(false);
       onUnpin();
     };
@@ -101,27 +103,83 @@ export function DrumStage({
     return () => window.removeEventListener("dk:drum:unpin-at-top", onUnpinAtTop);
   }, [onUnpin]);
 
-  // pin seam: pin when the sentinel ENTERS from below — its top crosses
-  // above the 62% line while its bottom is still below the viewport top
-  // (an exit scroll passing the sentinel must NOT re-pin).
+  // pin + crossfade seam: coverage-based opacity and guard flags.
+  // When the sentinel fully covers the viewport from above, the drum pins
+  // with a crossfade (scale 0.96→1, opacity 0→1). When exiting downward
+  // the sentinel leaves the viewport, the stage fades out and unpins.
+  // An intentional unpin (unpin-at-top or exit-to-footer) arms a
+  // suppression flag to block auto-re-pin while gliding past.
+  const stageRef = useRef<HTMLDivElement>(null);
+  const suppressRePinRef = useRef(false);
+
+  // arm on intentional unpin: prevents deadlock on footer glide.
+  // auto-clears after 200ms so a fresh scroll re-entry can re-pin; the footer
+  // glide (1.2s) is protected because the stage is mid-fade-out during it.
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    const arm = () => {
+      suppressRePinRef.current = true;
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => { suppressRePinRef.current = false; }, 200);
+    };
+    window.addEventListener("dk:drum:intentional-unpin", arm);
+    return () => {
+      window.removeEventListener("dk:drum:intentional-unpin", arm);
+      if (timeout) clearTimeout(timeout);
+    };
+  }, []);
+
   useEffect(() => {
     const anchor = anchorRef.current;
     if (!anchor) return;
-    const check = () => {
-      if (document.documentElement.classList.contains("drum-pinned")) return;
+    const apply = () => {
+      const stage = stageRef.current;
+      if (!stage) return;
+      const pinnedNow = document.documentElement.classList.contains("drum-pinned");
       const rect = anchor.getBoundingClientRect();
-      if (rect.top < window.innerHeight * 0.62 && rect.bottom > 0) {
+      const vh = window.innerHeight;
+
+      // crossfade progress from the sentinel's entering face:
+      // sentinel enters from above (rect.top rises from +vh to 0), opacity
+      // ramps 0→1. When unpinned and the sentinel exits downward (rect.bottom
+      // drops to 0) or has gone above the viewport (rect.top > 0 after unpin),
+      // opacity ramps back to 0. Widen the ramp (1.2vh instead of 1vh) so
+      // the fade is gradual enough to read as a transition, not a hard cut.
+      const ramp = vh * 1.2;
+      const entered = Math.min(1, Math.max(0, 1 - rect.top / ramp));
+      const exited = Math.min(1, Math.max(0, rect.bottom / ramp));
+      const goingDown = rect.top < 0; // sentinel's top has crossed viewport top
+      const unpinnedAbove = !pinnedNow && rect.top > 0 && rect.top > vh;
+      // entering phase: sentinel coming down; exiting phase: sentinel going up
+      const p = pinnedNow ? 1
+        : unpinnedAbove ? 0
+        : goingDown ? exited
+        : entered;
+
+      
+      stage.style.opacity = String(p);
+      stage.style.transform = `scale(${(0.96 + 0.04 * p).toFixed(4)})`;
+      stage.style.pointerEvents = p >= 0.96 ? "auto" : "none";
+
+      // pin once the sentinel fully covers the viewport from above
+      // (and we're not suppressing re-pin from a prior intentional unpin)
+      if (!pinnedNow && !suppressRePinRef.current && rect.top <= 2 && rect.bottom > 0) {
         setPinned(true);
         drumResetRef.current?.(0);
       }
+
+      // unpin when the sentinel exits downward (crossfade fades stage invisible)
+      if (pinnedNow && exited > 0.95) {
+        setPinned(false);
+      }
     };
-    window.addEventListener("scroll", check, { passive: true });
-    window.addEventListener("resize", check);
+    apply();
+    window.addEventListener("scroll", apply, { passive: true });
+    window.addEventListener("resize", apply);
     return () => {
-      window.removeEventListener("scroll", check);
-      window.removeEventListener("resize", check);
+      window.removeEventListener("scroll", apply);
+      window.removeEventListener("resize", apply);
     };
-    // deliberately NOT depending on `drum` or `pinned` (the class check guards)
   }, [anchorRef]);
 
   // while pinned: lock document scroll. No restore-on-cleanup: the unpin
@@ -135,17 +193,18 @@ export function DrumStage({
     };
   }, [pinned]);
 
-  // the unpin boundary: leaving the drum must also leave the pin zone —
-  // the pin scroll-listener would otherwise re-pin on the same position.
-  // Park the page above the sentinel's 62% line with half a viewport spare.
+  // unpin-at-top park: smooth glide back up to the hero viewport (replaces
+  // the old hard cut), and arm the suppression flag so the seam listener
+  // does not re-pin during the glide.
   useEffect(() => {
     if (pinned) return;
     const sentinel = anchorRef.current;
     if (!sentinel) return;
-    const sentinelTop = sentinel.getBoundingClientRect().top + window.scrollY;
-    const safeTop = sentinelTop - window.innerHeight * 0.62 - window.innerHeight * 0.5;
-    if (window.scrollY > safeTop) {
-      window.scrollTo({ top: Math.max(0, safeTop) });
+    const sentinelAbs = sentinel.getBoundingClientRect().top + window.scrollY;
+    const parkTop = Math.max(0, sentinelAbs - window.innerHeight * 0.62 - window.innerHeight * 0.5);
+    if (window.scrollY > parkTop) {
+      window.dispatchEvent(new CustomEvent("dk:drum:intentional-unpin"));
+      window.dispatchEvent(new CustomEvent("dk:drum:scroll-to", { detail: parkTop }));
     }
   }, [pinned, anchorRef]);
 
@@ -164,10 +223,15 @@ export function DrumStage({
     setActiveIndex(0);
   };
 
-  // the engine's unpin boundary and the Rail's footer exit both route here;
-  // unmounting the stage restores scroll exactly (effect cleanup)
-  const unpin = () => setPinned(false);
+  // the engine's unpin-at-top boundary and the Rail's footer exit both
+  // route here. Unpin arms the suppression flag so the seam listener
+  // does not re-pin while Lenis glides us out of the pin zone.
+  const unpin = () => {
+    window.dispatchEvent(new CustomEvent("dk:drum:intentional-unpin"));
+    setPinned(false);
+  };
   const exitToFooter = () => {
+    window.dispatchEvent(new CustomEvent("dk:drum:intentional-unpin"));
     setPinned(false);
     // let the stage unmount and scroll unlock before easing down
     requestAnimationFrame(() => {
@@ -179,11 +243,14 @@ export function DrumStage({
   const currentCard: Reel | Video = loopItems[safeActiveIndex] ?? activeReel;
   const isReelOne = activeReel.slug === "reel-01";
 
-  if (!pinned) return null;
-
+  // always mounted: the seam crossfades this element via inline opacity/
+  // transform as the sentinel scrolls through the viewport. It only unmounts
+  // when reduced-motion disables the drum entirely.
   return (
     <div
+      ref={stageRef}
       className="drum-stage fixed inset-0 z-20 flex items-center justify-center overflow-hidden select-none"
+      style={{ opacity: 0, pointerEvents: "none" }}
       aria-label={`${activeReel.title} reel, card ${safeActiveIndex + 1} of ${count}`}
     >
       <div

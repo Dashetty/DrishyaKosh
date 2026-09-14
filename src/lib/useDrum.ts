@@ -192,7 +192,12 @@ export function useDrum({
         topExitAccumRef.current = 0;
       }
 
-      targetRef.current -= delta * 0.0011;
+      // discrete mouse wheels (~100-150px/notch) need more authority than
+      // siena's 0.0011 (tuned for continuous trackpad streams): a notch
+      // moves ~35% of a card so 3 notches advance one card, and the snap
+      // never eats the input
+      const step = Math.abs(delta) <= 200 ? 0.0032 : 0.0011;
+      targetRef.current -= delta * step;
     };
 
     window.addEventListener("wheel", handleWheel, { passive: true });

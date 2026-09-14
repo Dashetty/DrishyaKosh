@@ -53,19 +53,26 @@ during the build. They are the soul of the site — replace each one in
 
 ## Behaviour notes
 
-- **The Drum (ADR-0002/0003)**: scrolling into the archive pins a
-  full-viewport stage — wheel, drag, or arrow keys roll the active Reel's
-  loop (its Intertitle + Frames) with infinite wrap, lerped inertia
-  (siena.film constants), siena parallax layers (catalog corner 120%,
-  title+credits 150%, curator quote 25%, poster + WATCH anchored), and
-  velocity motion blur on the frames layer (≤8px, off on touch).
+- **The Drum (ADR-0002/0003)**: scrolling into the archive crossfades in a
+  full-viewport stage — a pinned sentinel (one viewport-height) at the
+  archive start drives a scroll-mapped fade-in (opacity + scale) over the
+  hero, then pins when fully covered, handing input to wheel/drag/arrow keys
+  that roll the active Reel's loop (its Intertitle + Frames) with infinite
+  wrap, lerped inertia (siena.film constants), siena parallax layers
+  (catalog corner 120%, title+credits 150%, curator quote 25%, poster +
+  WATCH anchored), and velocity motion blur on the frames layer (≤8px,
+  off on touch). Exiting downward (scroll past the sentinel, or the END OF
+  REEL footer jump) crossfades the stage back out to opacity 0 — the stage
+  stays mounted throughout, only Lenis scroll locks/unlocks.
 - **The Rail** (fixed top-center, fused with the HUD): Reel tabs switch
   reels — landing on the target Reel's Intertitle with a full physics reset.
   The HUD shows the current card's catalog number and position with
   progress ticks. "END OF REEL ↓" exits to the footer from any reel;
   scrolling up on Reel 01's Intertitle unpins back to the hero.
 - **Reduced motion**: the drum never mounts — the real-scrolling archive
-  (Lenis + settle-snap, ADR-0001) serves instead.
+  (Lenis + settle-snap, ADR-0001) serves instead. Discrete mouse-wheel
+  notches get a 0.0032 multiplier (vs siena's 0.0011 for continuous
+  trackpads) so ~3 clicks advance one card.
 - **Watch = embed modal** (`youtube-nocookie`, paused until play, ESC/backdrop
   closes, "open on YouTube ↗" inside). While open the site enters a
   **projector hold**: grain and flicker pause, scroll locks.

@@ -6,8 +6,6 @@
  * happens in the IAB once its compositor recovers, or on a real machine.
  */
 import { chromium } from "@playwright/test";
-import { pathToFileURL } from "node:url";
-import path from "node:path";
 
 const BASE = "http://localhost:3100";
 
@@ -16,19 +14,26 @@ const check = (name, pass, detail = "") => {
   results.push(`${pass ? "PASS" : "FAIL"}  ${name}${detail ? "  — " + detail : ""}`);
 };
 
+// rAF helper: lets the physics loop settle after a state change
+const waitForFrame = () => new Promise((r) => setTimeout(r, 50));
+
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 await page.goto(BASE, { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(2500);
 
-// ——— 1. pin seam ———
-await page.evaluate(() => window.scrollTo(0, 700));
+// ——— 1. pin seam (crossfade) ———
+// the drum pins when the sentinel FULLY covers the viewport (top ≈ 901)
+await page.evaluate(() => window.scrollTo(0, 1000));
 await page.waitForTimeout(600);
 let pinned = await page.evaluate(() => document.documentElement.classList.contains("drum-pinned"));
 check("pin seam: scrolling to sentinel pins the drum", pinned);
 
-let hud = await page.textContent('[aria-live="polite"]');
-check("HUD reads Reel 01 intertitle", hud === "REEL 01 · 1/4", `got "${hud}"`);
+// wait for the stage and HUD to appear (stage is always mounted now)
+const stage = await page.waitForSelector(".drum-stage", { state: "attached", timeout: 5000 });
+const hudEl = await page.waitForSelector('[aria-live="polite"]', { timeout: 5000 });
+const hudText = await hudEl.textContent();
+check("HUD reads Reel 01 intertitle", hudText === "REEL 01 · 1/4", `got "${hudText}"`);
 
 // ——— 2. wheel roll: advances cards and wraps ———
 // momentum varies; assert advancement + a wrap (a 1/4 after a higher position)
@@ -53,21 +58,23 @@ check("partial wheel settles (snap) to a whole card", /\d\/4$/.test(snapped), `H
 // ——— 4. rail switch: Design → Music ———
 await page.click('nav[aria-label="Reels"] >> text=MUSIC');
 await page.waitForTimeout(900);
-hud = await page.textContent('[aria-live="polite"]');
+const hud4 = await page.textContent('[aria-live="polite"]');
 const musicTitle = await page.textContent(".drum-stage h2");
-check("rail switch lands on Music intertitle at 1/4", hud === "REEL 02 · 1/4" && musicTitle === "Music", `HUD "${hud}", title "${musicTitle}"`);
+check("rail switch lands on Music intertitle at 1/4", hud4 === "REEL 02 · 1/4" && musicTitle === "Music", `HUD "${hud4}", title "${musicTitle}"`);
 
 // ——— 5. physics reset: velocity from previous reel must not bleed ———
 await page.evaluate(() => window.dispatchEvent(new WheelEvent("wheel", { deltaY: 6000, bubbles: true })));
 await page.click('nav[aria-label="Reels"] >> text=DESIGN');
-await page.waitForTimeout(400);
+await waitForFrame();
+await waitForFrame();
+await waitForFrame();
 const blurAfterSwitch = await page.evaluate(() => {
   const layer = document.querySelector(".drum-stage > div");
   return layer?.style.filter || "none";
 });
 check("rail switch resets blur (no velocity bleed)", blurAfterSwitch === "none", `filter "${blurAfterSwitch}"`);
-hud = await page.textContent('[aria-live="polite"]');
-check("switch back to Design lands on intertitle 1/4", hud === "REEL 01 · 1/4", `HUD "${hud}"`);
+const hud5 = await page.textContent('[aria-live="polite"]');
+check("switch back to Design lands on intertitle 1/4", hud5 === "REEL 01 · 1/4", `HUD "${hud5}"`);
 
 // ——— 6. unpin-at-top: on Reel 01 intertitle, scroll up exits ———
 // real trackpads emit small deltas over time; the accumulator requires the
@@ -78,20 +85,24 @@ for (let i = 0; i < 6; i++) {
 }
 await page.waitForTimeout(1200);
 const unpinned = await page.evaluate(() => !document.documentElement.classList.contains("drum-pinned"));
-const scrollRestored = await page.evaluate(() => !document.documentElement.classList.contains("drum-pinned") && window.scrollY < 1100);
 check("wheel-up on Reel 01 intertitle unpins to hero scroll", unpinned, `scrollY ${await page.evaluate(() => Math.round(window.scrollY))}`);
 
 // ——— 7. re-pin and END OF REEL exit to footer ———
-await page.evaluate(() => window.scrollTo(0, 700));
+await page.evaluate(() => window.scrollTo(0, 1000));
 await page.waitForTimeout(600);
 pinned = await page.evaluate(() => document.documentElement.classList.contains("drum-pinned"));
 check("re-pin works after unpin", pinned);
 if (pinned) {
   await page.click("text=END OF REEL ↓");
-  // wait for the exit: unmount first, then the footer easing into view
+  // wait for the stage to fade out (opacity → 0) and unpin; then footer glides in
   await page.waitForFunction(
-    () => !document.querySelector(".drum-stage"),
-    { timeout: 5000 }
+    (p) => {
+      const stage = document.querySelector(".drum-stage");
+      const style = stage?.style;
+      return !document.documentElement.classList.contains("drum-pinned") &&
+             style && parseFloat(style.opacity) < 0.05;
+    },
+    { timeout: 6000 }
   );
   await page.waitForFunction(
     () => {
