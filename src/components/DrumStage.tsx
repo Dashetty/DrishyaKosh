@@ -7,6 +7,27 @@ function subscribePointerMedia(onChange: () => void) {
   mq.addEventListener("change", onChange);
   return () => mq.removeEventListener("change", onChange);
 }
+
+/**
+ * Seam crossfade progress p ∈ [0,1] — continuous everywhere. Approaching from
+ * above (rect.top: vh → 0) and exiting downward (rect.bottom: vh → 0) share
+ * one cubic ease-in, so the stage is imperceptible while the page owns
+ * the screen, hands off gradually mid-scroll, and hits full opacity exactly
+ * when the sentinel covers the viewport. Pinned forces 1. The old gated
+ * version (opacity 0 until 0.6vh, then a jump to `entered`) popped in a
+ * single frame — this replaces it with no discontinuity at any boundary.
+ */
+function seamProgress(rect: DOMRect, vh: number, pinnedNow: boolean): number {
+  if (pinnedNow) return 1;
+  const x = rect.top >= 0 ? 1 - rect.top / vh : rect.bottom / vh;
+  return Math.min(1, Math.max(0, x)) ** 3;
+}
+
+function applySeamProgress(stage: HTMLElement, p: number) {
+  stage.style.opacity = String(p);
+  stage.style.transform = `scale(${(0.96 + 0.04 * p).toFixed(4)})`;
+  stage.style.pointerEvents = p >= 0.96 ? "auto" : "none";
+}
 import { reels, videos } from "@/data/videos";
 import type { Reel, Video } from "@/types";
 import { useDrum } from "@/lib/useDrum";
@@ -139,27 +160,8 @@ export function DrumStage({
       const rect = anchor.getBoundingClientRect();
       const vh = window.innerHeight;
 
-      // crossfade progress from the sentinel's entering face:
-      // sentinel enters from above (rect.top rises from +vh to 0), opacity
-      // ramps 0→1. When unpinned and the sentinel exits downward (rect.bottom
-      // drops to 0) or has gone above the viewport (rect.top > 0 after unpin),
-      // opacity ramps back to 0. Widen the ramp (1.2vh instead of 1vh) so
-      // the fade is gradual enough to read as a transition, not a hard cut.
-      const ramp = vh * 1.2;
-      const entered = Math.min(1, Math.max(0, 1 - rect.top / ramp));
-      const exited = Math.min(1, Math.max(0, rect.bottom / ramp));
-      const goingDown = rect.top < 0; // sentinel's top has crossed viewport top
-      const unpinnedAbove = !pinnedNow && rect.top > 0 && rect.top > vh;
-      // entering phase: sentinel coming down; exiting phase: sentinel going up
-      const p = pinnedNow ? 1
-        : unpinnedAbove ? 0
-        : goingDown ? exited
-        : entered;
-
-      
-      stage.style.opacity = String(p);
-      stage.style.transform = `scale(${(0.96 + 0.04 * p).toFixed(4)})`;
-      stage.style.pointerEvents = p >= 0.96 ? "auto" : "none";
+      const p = seamProgress(rect, vh, pinnedNow);
+      applySeamProgress(stage, p);
 
       // pin once the sentinel fully covers the viewport from above
       // (and we're not suppressing re-pin from a prior intentional unpin)
@@ -168,8 +170,8 @@ export function DrumStage({
         drumResetRef.current?.(0);
       }
 
-      // unpin when the sentinel exits downward (crossfade fades stage invisible)
-      if (pinnedNow && exited > 0.95) {
+      // unpin once the sentinel has fully left the viewport downward
+      if (pinnedNow && rect.bottom <= 0) {
         setPinned(false);
       }
     };
@@ -233,12 +235,43 @@ export function DrumStage({
   const exitToFooter = () => {
     window.dispatchEvent(new CustomEvent("dk:drum:intentional-unpin"));
     setPinned(false);
-    // let the stage unmount and scroll unlock before easing down
+    // let Lenis ease down to the footer; the crossfade seam will fade out
+    // as we scroll through the pin zone
     requestAnimationFrame(() => {
       const target = document.body.scrollHeight;
       window.dispatchEvent(new CustomEvent("dk:drum:scroll-to", { detail: target }));
     });
   };
+
+  // During Lenis-powered scrolls (footer exit), native scroll events are
+  // throttled/delayed, so drive the crossfade opacity via a rAF loop that
+  // recomputes the seam state each frame until we're clear of the pin zone.
+  useEffect(() => {
+    if (pinned) return;
+    const anchor = anchorRef.current;
+    if (!anchor) return;
+    let rafId = 0;
+    const tick = () => {
+      const stage = stageRef.current;
+      const anchorEl = anchorRef.current;
+      if (!stage || !anchorEl) return;
+      const pinnedNow = document.documentElement.classList.contains("drum-pinned");
+      const rect = anchorEl.getBoundingClientRect();
+      const vh = window.innerHeight;
+
+      const p = seamProgress(rect, vh, pinnedNow);
+      applySeamProgress(stage, p);
+
+      // keep ticking until the stage has fully faded (Lenis-powered glides
+      // may not emit a native scroll event every frame, so the scroll
+      // listener alone can miss frames)
+      if (!pinnedNow && p > 0) {
+        rafId = requestAnimationFrame(tick);
+      }
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [pinned, anchorRef]);
 
   const currentCard: Reel | Video = loopItems[safeActiveIndex] ?? activeReel;
   const isReelOne = activeReel.slug === "reel-01";
