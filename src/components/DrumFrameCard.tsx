@@ -88,7 +88,7 @@ export function DrumFrameCard({
           <button
             type="button"
             onClick={() => onWatch(video)}
-            className="ticket-stub absolute -bottom-2 right-0 border border-bone/30 bg-ink/60 px-5 py-2.5 font-meta text-[0.6rem] tracking-[0.35em] text-bone backdrop-blur-sm transition-colors duration-300 hover:border-amber hover:bg-amber hover:text-ink"
+            className="ticket-stub absolute -bottom-2 right-0 border border-bone/30 bg-ink/60 px-5 py-2.5 font-meta text-[0.6rem] tracking-[0.35em] text-bone backdrop-blur-sm transition-colors duration-300 hover:border-amber hover:bg-amber hover:text-ink active:scale-[0.96] active:transition-transform active:duration-150"
             aria-label={`Watch ${video.title} (${video.duration})`}
           >
             ▶ WATCH

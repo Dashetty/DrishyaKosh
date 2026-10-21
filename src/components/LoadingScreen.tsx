@@ -6,11 +6,8 @@ import gsap from "gsap";
 const INTRO_FLAG = "dk-intro";
 
 /**
- * Projector intro — ~1.2s, click-to-skip, once per session (sessionStorage).
- * A pre-paint inline script in layout.tsx sets `html.intro-pending`, which
- * CSS uses to show this overlay from the very first frame (no flash, no
- * React state). This component plays the GSAP timeline when the class is
- * present and removes it on finish; visibility is entirely CSS-driven.
+ * Projector intro — simple beam rise and reveal, runs once per session.
+ * Pre-paint inline script in layout.tsx sets `html.intro-pending`.
  */
 export function LoadingScreen() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -37,7 +34,6 @@ export function LoadingScreen() {
 
     const beam = root.querySelector<HTMLElement>("[data-beam]");
     const wordmark = root.querySelector<HTMLElement>("[data-wordmark]");
-    const rails = root.querySelectorAll<HTMLElement>("[data-rail]");
 
     const tl = gsap.timeline({ onComplete: finish });
     tl.set(root, { clipPath: "inset(0% 0% 0% 0%)" })
@@ -46,7 +42,6 @@ export function LoadingScreen() {
         { scaleY: 0, opacity: 0 },
         { scaleY: 1, opacity: 1, duration: 0.35, ease: "power2.out" }
       )
-      .fromTo(rails, { opacity: 0 }, { opacity: 1, duration: 0.25 }, "<0.1")
       .fromTo(
         wordmark,
         { opacity: 0, letterSpacing: "0.6em" },
@@ -58,11 +53,12 @@ export function LoadingScreen() {
         root,
         {
           clipPath: "inset(0% 0% 100% 0%)",
-          duration: 0.55,
+          duration: 0.7,
           ease: "power4.inOut",
         },
         "+=0.1"
-      );
+      )
+      .to(beam, { opacity: 0, duration: 0.2 });
 
     const skip = () => {
       tl.kill();
@@ -83,15 +79,12 @@ export function LoadingScreen() {
       className="fixed inset-0 z-[100] items-center justify-center bg-ink"
       aria-hidden
     >
-      {/* crawling sprocket rails on the intro's own edges */}
-      <div
-        data-rail
-        className="sprocket-rail anim-crawl pointer-events-none absolute inset-y-0 left-6 w-[14px] opacity-0"
-      />
-      <div
-        data-rail
-        className="sprocket-rail anim-crawl pointer-events-none absolute inset-y-0 right-6 w-[14px] opacity-0"
-      />
+      {/* subtle sprocket dots at top and bottom for film reference */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2">
+        <div className="w-1 h-1 rounded-full bg-amber/40" />
+        <div className="w-1 h-1 rounded-full bg-amber/40" />
+        <div className="w-1 h-1 rounded-full bg-amber/40" />
+      </div>
 
       {/* projector light beam */}
       <div

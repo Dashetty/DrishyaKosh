@@ -76,11 +76,33 @@ card's Catalog Number and title, position in the loop, progress ticks.
 and flicker freeze, scroll locks. The projector has stopped; the film is
 being inspected.
 
+**Intro Sequence** — the "threading the projector" animation that runs once per
+session before the hero. A beam rises, the wordmark appears at its center,
+then the intro slides out to reveal the hero. Click to skip.
+
+**Hero Presentation** — the curator portrait section that introduces the
+archive. Contains the wordmark "Drishyakosh", the curator's name, and the
+tagline. Scrolls into the archive and triggers the Drum transition.
+
 **Sprockets** — the small rounded film perforations running down both
-viewport edges (desktop only) and along the intro screen.
+viewport edges (desktop only). Subtly present, not animated.
+
+**Light Leak** — a subtle radial gradient that adds warmth to the hero and
+intro. Static, not drifting.
 
 **Aperture Cursor** — the custom cursor (center dot + ring) that contracts
-over interactive elements. Native cursor is hidden on fine pointers.
+over interactive elements. Hidden on fine pointers.
 
-**Thread / Threading** — loading the film: the intro sequence (beam →
-sprockets → wordmark → wipe). Runs once per session; clicking skips it.
+**Grain** — subtle film grain (2-3% opacity) applied to the viewport edges
+and hero background. Static, revealed on hover, off on mobile.
+
+## Style Guide
+
+Visual treatment follows a professional film archive aesthetic:
+
+- **Palette**: Near-black base (`#0a0908`), warm off-white text (`#f5f1e9`), matte gold accent (`#c7a262`)
+- **Typography**: Maghfirea for display (wordmarks, intertitles), NeueBrucke for body
+- **Transitions**: Subtle, purposeful — siena.film-inspired physics, but never distracting
+- **Texture**: Grain and sprockets are present but unobtrusive; they enhance, not compete
+
+See ADR-0004 for the detailed design direction.

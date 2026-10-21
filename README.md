@@ -2,15 +2,13 @@
 
 **A personal archive of moving pictures — handpicked, not algorithmic.**
 
-A curated archive of YouTube videos presented as one continuous film reel:
-near-black, grainy, warm, archival. Every video is a **Frame** (film-poster
-treatment with a curator's pull-quote); frames are grouped into themed
-**Reels** introduced by silent-film **Intertitles**. Loading threads the
-projector once per session; scrolling pulls the film through the gate.
+A curated film archive presented with the quiet confidence of a professional portfolio. Every video is a **Frame** (graded thumbnail with curator's note); frames are grouped into themed **Reels** that open on an **Intertitle** like a silent-film title card. The experience unfolds in three acts:
 
-Stack: Next.js (App Router) · React · TypeScript · GSAP + ScrollTrigger ·
-Lenis · Tailwind v4. No UI component libraries (BeUI is an approved
-copy-paste source for later motion primitives — see below).
+1. **The Intro** — a brief "threading the projector" sequence that signals the start of the film
+2. **The Curator's Portrait** — the hero section introducing Hardeep Dilip Shetty and the archive's purpose
+3. **The Projection** — the Drum stage where frames roll through the gate with cinematic physics
+
+Stack: Next.js (App Router) · React · TypeScript · GSAP + ScrollTrigger · Lenis · Tailwind v4. No UI component libraries (BeUI is an approved copy-paste source for later motion primitives — see below).
 
 ## Run it
 
