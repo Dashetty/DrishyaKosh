@@ -151,7 +151,7 @@ export function Hero() {
         <div
           ref={wedgeRef}
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-full z-0 hidden h-[10vh] bg-signal md:block"
+          className="pointer-events-none absolute inset-x-0 top-full z-0 h-[10vh] bg-signal md:block"
           style={{ clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)" }}
         />
       )}

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "picassoweb": {
+      "type": "local",
+      "command": ["npx", "-y", "picassoweb"],
+      "enabled": true
+    }
+  }
+}

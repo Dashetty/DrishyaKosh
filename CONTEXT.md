@@ -5,9 +5,26 @@ copy; do not drift to synonyms.
 
 ## Glossary
 
-**Archive** — the entire site: the collection of Frames organised into Reels,
-presented as one continuous film reel. Not a "gallery", not a "feed" — it is
-handpicked, not algorithmic.
+> **Terminology change (2026-10-24)** — approved by the Curator: **Reel** now
+> means *one specific video* (was: a themed group of videos), and the new word
+> for that group is **Category**. Docs written before this date (ADR-0001…0005)
+> and legacy code names (`ReelStrip`, `Reel Mark`, "Reel number") still use the
+> old sense; read them through that lens until their entries below are updated
+> by the Categories cutover. The linear film-roll strip is being replaced by
+> Categories + the curved carousel (Hero → Category chooser → carousel under it
+> → footer); entries that describe strip-only behaviour (Film-roll Scroll,
+> Intertitle, Layered Parallax trigger, Reel Mark zones) describe current code
+> and are retired with the strip at cutover.
+
+**Archive** — the entire site: the collection of Frames organised into
+**Categories**, each holding multiple **Reels** (videos). Browsing = pick a
+Category and move through its Reels in the curved carousel below the chooser.
+Not a "gallery", not a "feed" — it is handpicked, not algorithmic.
+
+**Category** — a curated thematic grouping of videos ("Design", "Animation",
+…). Picking one swaps in that group's Reels in the carousel section directly
+below the chooser; both stay visible on the one page (`/`). Not a "genre tag"
+on a ticket and not a playlist — it is the top-level taxonomy of the Archive.
 
 **Curator** — Hardeep Dilip Shetty, the person whose personal taste the archive
 expresses. Every Curator's Note is in the curator's voice.
@@ -17,14 +34,16 @@ the **Pull-quote**: the P22 Parrish Roman italic quote block on the right side
 of a Frame (below the frame on mobile). One text, two renderings — the data
 field is `curatorNote`; do not introduce a separate "quote" concept.
 
-**Frame** — the core unit: one video presented as a film poster (graded
+**Frame** — the core unit: one Reel (video) presented as a Ticket (graded
 thumbnail, overlapped title, credits row, catalog corner, genre tag,
-Pull-quote, WATCH ticket stub). Twelve Frames in the sample archive, three to
-four per Reel.
+Pull-quote, WATCH ticket stub). Twelve Frames in the sample archive, spread
+across the Categories.
 
-**Reel** — a curated group of Frames with a theme ("Reel 01 — Design"). A
-Reel opens with an Intertitle card. Not a "category" or "playlist" — the word
-carries the film-reel metaphor.
+**Reel** — one specific video: a single curated video in the Archive. A
+Category holds multiple Reels; a Frame renders a Reel as a Ticket. (Before
+2026-10-24 "Reel" meant the *group* now called a Category — see the note at
+the top of this glossary.) Not a "clip" and not a "post" — the word carries
+the film-reel metaphor for a single video.
 
 **Intertitle** — the large typographic card ("REEL 01 — DESIGN") that opens a
 Reel, styled after silent-film title cards.
@@ -37,40 +56,37 @@ derived at runtime; survives reordering and CMS swaps.
 thumbnail so the whole archive reads as one film stock. Lifts on hover to
 reveal original color. Do not apply per-video filters — one stock, everywhere.
 
+**Carousel** — the curved horizontal row of Tickets that a Category's Reels
+render in, below the Category chooser. It does not spin; it *moves
+horizontally*, driven by scrolling (its section maps scroll progress to
+sideways travel). Scrolling works everywhere; on touch, where scroll capture
+fights the page, round Arrow buttons appear as secondary controls. Clicking a
+front (focused) Ticket opens the Watch lightbox. Ported from the Dokmeh-style
+reference in `Inspo/` (build pending).
+
 **Film-roll Scroll** — the signature scroll behaviour: velocity-driven
-skew/rotation of the strip, settling one Frame at a time through the "gate"
-(settle-snap on fine pointers, native CSS snap on touch). Do not apply while
-the Drum is mounted.
+skew (±0.6°) and rotation (±0.25°) of the strip — film pulling through the
+gate — easing to rest through power3 curves, then settling one Frame at a
+time through the "gate" (settle-snap via Lenis on fine pointers; native CSS
+snap on touch where Lenis stands down).
 
-**Drum** — the infinite virtual carousel the archive scrolls *into*: a pinned
-full-viewport stage where wheel, drag, and arrow keys drive a virtual
-position instead of the document, cards wrap infinitely in both directions
-(circular modulo), and Layered Parallax + Motion Blur run during motion.
-Its loop is bounded per Reel (see Rail): the active Reel's Intertitle and
-Frames wrap first-to-last and back, never crossing into another Reel.
-Intertitles are Drum items like Frames. The Film-roll Scroll (and Lenis)
-stand down while the Drum is pinned; they resume when it unpins. Mounts only
-when motion is allowed — under reduced motion the archive falls back to
-Film-roll Scroll.
+**Ticket** — the MUMO-style paper ticket card a Frame renders as in the
+linear strip (desktop wears the designed paper asset with the reel's spine
+multiplied over the baked stub; the artwork fills the body panel flush).
+Mobile keeps the compact card. `TicketFrame.tsx` is the only renderer.
 
-**Rail** — the explicit horizontal navigation between Reels, fused with the
-Drum HUD: Reel names in a row (active distinct) beside the catalog readout
-and progress ticks, plus the permanent footer exit. Switching Reels via the
-Rail lands on the target Reel's Intertitle, plays as a canister-swap wipe,
-and fully resets the Drum's physics state. There is no auto-continue from
-the end of one Reel's loop into another — only the Rail crosses Reels.
+**Layered Parallax** — inside a Ticket, the type layers slide a few pixels
+against the paper as the card drifts past centre: catalog 46px, title/credits
+26px counter-direction, quote 10px, poster and controls anchored. Driven by a
+rAF window-scroll compute (not ScrollTrigger); p is 0 exactly when a card is
+centered, so layers always settle flush against the baked perforations.
+Rates are px of card offset (`data-parallax-rate`).
 
-**Layered Parallax** — inside a Drum card, each element layer slides at its
-own rate relative to the card's distance from centre (poster anchored;
-catalog corner 120%; title + credits 150%; curator quote 25%; interactive
-controls anchored). Rates measured in % of card offset, after siena.film.
-
-**Motion Blur** — the velocity-driven lens blur on the Drum's frame layer
-during flicks and fast drags (clamped 8px; off on touch and under reduced
-motion).
-
-**Drum HUD** — the fixed top-centre readout while the Drum is pinned: current
-card's Catalog Number and title, position in the loop, progress ticks.
+**Reel Mark** — the fixed top-centre reel-sprite chrome (ADR-0005). Purely
+decorative: it takes no input, never navigates, and only dresses for the
+film — ink over the hero, parked during the hero scrub, bone over the ink
+archive, gone past "END OF REEL.". The footer's **FLIP IT OVER** is the page's
+only return-to-top control.
 
 **Projector Hold** — the paused state while the Watch lightbox is open: grain
 and flicker freeze, scroll locks. The projector has stopped; the film is
@@ -82,7 +98,8 @@ then the intro slides out to reveal the hero. Click to skip.
 
 **Hero Presentation** — the curator portrait section that introduces the
 archive. Contains the wordmark "Drishyakosh", the curator's name, and the
-tagline. Scrolls into the archive and triggers the Drum transition.
+tagline. Scrolls straight into the archive strip (its squeeze-scrub is the
+`[data-hero-scrub]` beat the Reel Mark parks through).
 
 **Sprockets** — the small rounded film perforations running down both
 viewport edges (desktop only). Subtly present, not animated.
@@ -105,4 +122,5 @@ Visual treatment follows a professional film archive aesthetic:
 - **Transitions**: Subtle, purposeful — siena.film-inspired physics, but never distracting
 - **Texture**: Grain and sprockets are present but unobtrusive; they enhance, not compete
 
-See ADR-0004 for the detailed design direction.
+See ADR-0004 for the visual direction and ADR-0005 for the current
+navigation architecture (decorative mark, linear strip, drum removal).

@@ -1,0 +1,6 @@
+{
+  "name": "Dokmeh Agency Awards Showcase",
+  "description": "Pixel-perfect recreation of the award-winning 3D project showcase section from Dokmeh Agency (hidokmeh.com).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

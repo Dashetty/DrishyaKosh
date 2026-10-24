@@ -1,194 +1,192 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
-test.describe('Animation Flash Detection', () => {
-  let page: Page;
+/**
+ * Animation Flash Detection — against the pinned-scrub hero (rebuilt
+ * c795d3b; the [data-hero-reveal].hero-* entrance markup is retired).
+ *
+ * "Flash" in the new design = the intro overlay lingering past the
+ * session intro, the word-lines double-running (heights changing with
+ * scroll untouched), or the tagline revealing before its timeline beat.
+ */
 
-  test.beforeEach(async ({ page: testPage }) => {
-    page = testPage;
+/** line wrappers: [0] DRISHYA, [1] KOSH — with their GSAP-driven heights */
+const lines = (page: Page) =>
+  page.evaluate(() => {
+    const texts = document.querySelectorAll('[data-hero-scrub] svg text');
+    return Array.from(texts).map((t) => ({
+      text: t.textContent,
+      height: (t.parentElement as Element)?.getBoundingClientRect().height ?? -1,
+    }));
   });
 
-  test('Detect flash or double animation on initial load', async () => {
-    // Start with completely fresh context (no localStorage/sessionStorage)
+const tagline = (page: Page) =>
+  page.evaluate(() => {
+    const el = document.querySelector(
+      '[data-hero-scrub] .pointer-events-none.inset-0',
+    ) as Element | null;
+    return el ? parseFloat(getComputedStyle(el).opacity) : -1;
+  });
+
+test.describe('Animation Flash Detection', () => {
+  test('Detect flash or double animation on initial load', async ({ page }) => {
     await page.goto('http://localhost:3000');
     await page.waitForLoadState('networkidle');
-
-    // Wait for potential animations to complete
+    // intro alone takes ~2.2s; settle well past it
     await page.waitForTimeout(4000);
 
-    // Check if intro-pending was removed
-    const hasIntroPendingNow = await page.evaluate(() => {
-      return document.documentElement.classList.contains('intro-pending');
-    });
+    const hasIntroPendingNow = await page.evaluate(() =>
+      document.documentElement.classList.contains('intro-pending'),
+    );
+    const loadingScreenVisible = await page
+      .locator('[data-intro-overlay]')
+      .isVisible()
+      .catch(() => false);
 
-    // Check LoadingScreen visibility
-    const loadingScreenVisible = await page.locator('[data-intro-overlay]').isVisible().catch(() => false);
-
-    // Check hero visibility
-    const heroTitleVisible = await page.locator('[data-hero-reveal].hero-title').isVisible();
-
+    // Hero present and at its poster state (no scroll has occurred)
+    const heroLines = await lines(page);
     console.log('Results after 4s wait:');
     console.log('  - intro-pending present:', hasIntroPendingNow);
     console.log('  - LoadingScreen visible:', loadingScreenVisible);
-    console.log('  - Hero title visible:', heroTitleVisible);
+    console.log('  - word-lines:', heroLines);
 
-    await page.screenshot({ path: 'screenshots/20-flash-test.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/20-flash-test.png', fullPage: false });
     console.log('Screenshot 20: Flash test result');
 
-    // Verify no flash - LoadingScreen should not be visible after 4s
     expect(hasIntroPendingNow).toBe(false);
     expect(loadingScreenVisible).toBe(false);
-    expect(heroTitleVisible).toBe(true);
+    // DRISHYA visible with real height; KOSH still closed (no scroll)
+    expect(heroLines[0]?.text).toBe('DRISHYA');
+    expect(heroLines[0]?.height ?? 0).toBeGreaterThan(100);
+    expect(heroLines[1]?.text).toBe('KOSH');
+    expect(heroLines[1]?.height ?? -1).toBeLessThan(4);
+    // tagline held until the scrub brings it (beat timeline ≥ 0.72)
+    expect(await tagline(page)).toBeLessThan(0.05);
   });
 
   test('Check animation timestamps for double execution', async ({ page }) => {
     await page.goto('http://localhost:3000');
     await page.waitForLoadState('networkidle');
 
-    // Capture GSAP timeline info after animation setup
-    const gsapInfo = await page.evaluate(() => {
-      // Check if GSAP timelines exist
-      const timelinesExist = typeof window !== 'undefined' && Boolean((window as Window & { gsap?: { timeline?: unknown } }).gsap?.timeline);
+    const initial = await lines(page);
+    const initialTagline = await tagline(page);
+    console.log('GSAP/Animation info (initial):', { initial, initialTagline });
 
-      // Check animation state from DOM
-      const title = document.querySelector('[data-hero-reveal].hero-title') as HTMLElement;
-
-      if (title) {
-        const style = window.getComputedStyle(title);
-        return {
-          timelineReady: timelinesExist,
-          titleOpacity: style.opacity,
-          titleTransform: style.transform,
-          titleVisible: parseFloat(style.opacity) > 0.1
-        };
-      }
-
-      return { timelineReady: timelinesExist, titleVisible: false };
-    });
-
-    console.log('GSAP/Animation info:', gsapInfo);
-
-    await page.screenshot({ path: 'screenshots/21-gsap-check.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/21-gsap-check.png', fullPage: false });
     console.log('Screenshot 21: GSAP animation check');
 
-    // Wait for animations
+    // No scroll, no interaction: a double-run would show up as motion.
+    // DRISHYA's idle breathe (scaleY yoyo ≤ 3% until first scroll) is the
+    // only sanctioned drift — KOSH and the tagline must hold exactly.
+    await page.waitForTimeout(3000);
+    const rested = await lines(page);
+    console.log('Word-lines after idle:', rested);
+    expect(Math.abs(rested[0].height - initial[0].height)).toBeLessThan(initial[0].height * 0.05);
+    expect(Math.abs(rested[1].height - initial[1].height)).toBeLessThan(2);
+    expect(await tagline(page)).toBe(initialTagline);
+
+    // scroll through the scrub range, then settle (scrub 0.6 catch-up)
+    await page.evaluate(() => {
+      const root = document.querySelector('[data-hero-scrub]') as HTMLElement;
+      const top = root.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo(0, top + root.offsetHeight - window.innerHeight);
+    });
     await page.waitForTimeout(3000);
 
-    // Check final state
-    const finalState = await page.evaluate(() => {
-      const elements = ['hero-title', 'hero-name', 'hero-tagline', 'hero-cue'];
-      return elements.map((cls) => {
-        const el = document.querySelector(`[data-hero-reveal].${cls}`) as HTMLElement;
-        if (!el) return { name: cls, visible: false };
-        const style = window.getComputedStyle(el);
-        return {
-          name: cls,
-          opacity: parseFloat(style.opacity),
-          visible: parseFloat(style.opacity) > 0.5
-        };
-      });
-    });
-
+    // Final scrub state: KOSH open, DRISHYA squeezed to ~78% of natural
+    const finalState = await lines(page);
     console.log('Final element states:', finalState);
-
-    // All should be visible
-    expect(finalState.every(e => e.visible)).toBe(true);
+    expect(finalState[1].height).toBeGreaterThan(
+      page.viewportSize()!.height * 0.2,
+    );
+    expect(finalState[0].height).toBeLessThan(initial[0].height);
+    // and the tagline is revealed exactly once (full opacity, stays)
+    expect(await tagline(page)).toBeGreaterThan(0.9);
   });
 
   test('Full animation flow timing', async ({ page }) => {
-    // Track timing of each animation phase
+    // unchanged: phase-by-phase screenshot walk (no markup assertions)
     const timings: Record<string, number> = {};
 
     await page.goto('http://localhost:3000');
     await page.waitForLoadState('networkidle');
 
-    // Time 0 - Initial load
     timings.initial = Date.now();
-    await page.screenshot({ path: 'screenshots/22-timeline-0-initial.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/22-timeline-0-initial.png', fullPage: false });
 
-    // Wait 300ms - LoadingScreen beam rising
     await page.waitForTimeout(300);
     timings.beamStart = Date.now();
-    await page.screenshot({ path: 'screenshots/23-timeline-300-beam.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/23-timeline-300-beam.png', fullPage: false });
 
-    // Wait 800ms - Wordmark appears
     await page.waitForTimeout(500);
     timings.wordmark = Date.now();
-    await page.screenshot({ path: 'screenshots/24-timeline-800-wordmark.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/24-timeline-800-wordmark.png', fullPage: false });
 
-    // Wait 1.5s - Intro clip-path animation
     await page.waitForTimeout(700);
     timings.introEnd = Date.now();
-    await page.screenshot({ path: 'screenshots/25-timeline-1500-intro.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/25-timeline-1500-intro.png', fullPage: false });
 
-    // Wait 2s - Hero animations start
     await page.waitForTimeout(500);
     timings.heroStart = Date.now();
-    await page.screenshot({ path: 'screenshots/26-timeline-2000-hero.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/26-timeline-2000-hero.png', fullPage: false });
 
-    // Wait 2.5s - Hero name animating
     await page.waitForTimeout(500);
     timings.nameAnimating = Date.now();
-    await page.screenshot({ path: 'screenshots/27-timeline-2500-name.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/27-timeline-2500-name.png', fullPage: false });
 
-    // Wait 3s - Tagline animating
     await page.waitForTimeout(500);
     timings.taglineAnimating = Date.now();
-    await page.screenshot({ path: 'screenshots/28-timeline-3000-tagline.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/28-timeline-3000-tagline.png', fullPage: false });
 
-    // Wait 3.5s - Cue animating
     await page.waitForTimeout(500);
     timings.cueAnimating = Date.now();
-    await page.screenshot({ path: 'screenshots/29-timeline-3500-cue.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/29-timeline-3500-cue.png', fullPage: false });
 
-    // Final - All animations complete
     await page.waitForTimeout(500);
     timings.complete = Date.now();
-    await page.screenshot({ path: 'screenshots/30-final-complete.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/30-final-complete.png', fullPage: false });
 
     console.log('Timeline measurement (ms):');
     Object.entries(timings).forEach(([key, value]) => {
       console.log(`  ${key}: ${value - timings.initial}`);
     });
 
-    // Verify session state
-    const sessionState = await page.evaluate(() => {
-      const html = document.documentElement;
-      return {
-        hasIntroPending: html.classList.contains('intro-pending'),
-      };
-    });
-
+    const sessionState = await page.evaluate(() => ({
+      hasIntroPending: document.documentElement.classList.contains('intro-pending'),
+    }));
     console.log('Session state:', sessionState);
+    expect(sessionState.hasIntroPending).toBe(false);
   });
 
   test('Refresh behavior check', async ({ page }) => {
-    // First visit
+    // First visit — intro plays and marks the session
     await page.goto('http://localhost:3000');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
 
-    // Set session storage as if visited before (simulating return visitor)
     await page.evaluate(() => {
       sessionStorage.setItem('dk-intro', '1');
     });
 
-    // Refresh
+    // Refresh — the inline pre-paint script skips the intro this time
     await page.reload();
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
-    // Check state after refresh
     const afterRefresh = await page.evaluate(() => ({
       introPending: document.documentElement.classList.contains('intro-pending'),
-      heroTitleVisible: !!document.querySelector('[data-hero-reveal].hero-title')
+      overlayDisplay: getComputedStyle(
+        document.querySelector('[data-intro-overlay]') as Element,
+      ).display,
+      heroWordmarks: document.querySelectorAll('[data-hero-scrub] svg text').length,
     }));
     console.log('After refresh:', afterRefresh);
 
-    await page.screenshot({ path: 'screenshots/31-refresh-check.png', fullPage: true });
+    await page.screenshot({ path: 'screenshots/31-refresh-check.png', fullPage: false });
     console.log('Screenshot 31: Refresh behavior check');
 
-    // After refresh with session storage set, intro should not replay
+    // no intro replay (no flash), hero present from the first paint
     expect(afterRefresh.introPending).toBe(false);
-    expect(afterRefresh.heroTitleVisible).toBe(true);
+    expect(afterRefresh.overlayDisplay).toBe('none');
+    expect(afterRefresh.heroWordmarks).toBe(2);
   });
 });

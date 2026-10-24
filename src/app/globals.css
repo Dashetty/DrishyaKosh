@@ -222,6 +222,20 @@ body {
   filter: none;
   transform: scale(1.015);
 }
+
+/* Paper-ticket variant — the art panel sits flush on cream (stub → wedge
+   boundary) and the ticket's top/bottom edges, edge-to-edge — no edge
+   melt; the cream paper's own texture provides any needed seam.
+   Same grade + hover lift as .duotone. */
+.duotone-paper img {
+  filter: grayscale(1) sepia(0.32) contrast(1.05) brightness(0.8) saturate(0.92);
+  transition: filter 0.55s ease, transform 0.8s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+.duotone-paper:hover img,
+.duotone-paper:focus-within img {
+  filter: none;
+  transform: scale(1.015);
+}
 .duotone::after {
   content: "";
   position: absolute;
@@ -299,31 +313,6 @@ dialog::backdrop {
   backdrop-filter: blur(4px);
 }
 
-/* ---------------------------------------------------------------------------
-   The Drum (ADR-0002/0003) — pinned stage + scroll-mode standby
---------------------------------------------------------------------------- */
-
-/* while the drum is pinned: the document is parked; the stage owns input */
-html.drum-pinned {
-  overflow: hidden;
-  touch-action: none;
-}
-
-.drum-stage {
-  touch-action: none;
-  background: var(--color-ink);
-  cursor: grab;
-}
-.drum-stage:active {
-  cursor: grabbing;
-}
-
-/* scroll-mode archive stands down while the drum owns the screen: hide the
-   strip behind the stage (it stays mounted as the reduced-motion fallback) */
-  .drum-standby {
-    visibility: hidden;
-  }
-
   @layer utilities {
     .animation-delay-400 {
       animation-delay: 0.4s;
@@ -387,4 +376,40 @@ html.drum-pinned {
   }
   .over-archive .reel-mark {
     background-color: var(--color-bone);
+  }
+
+
+  /* ─── Decorative reel mark (ADR-0004, revised) ──────────────────────────
+     The mark is chrome, not navigation: it shows, threads to the film's
+     color and fades in the dead zones, and never takes input. The archive
+     scrolls itself; the footer's FLIP IT OVER is the only return-to-top. */
+  .dk-mark {
+    position: relative;
+    transform: translateY(var(--park-y, 0px));
+    opacity: 1;
+    transition:
+      opacity 450ms cubic-bezier(0.23, 1, 0.32, 1),
+      transform 450ms cubic-bezier(0.23, 1, 0.32, 1);
+    animation: dk-mark-in 700ms cubic-bezier(0.23, 1, 0.32, 1) 200ms backwards;
+    pointer-events: none;
+  }
+  /* parked in the dead zones: mid-hero scrub (ink-on-ink) and the footer */
+  .dk-mark[data-zone="scrub"],
+  .dk-mark[data-zone="footer"] {
+    --park-y: -8px;
+    opacity: 0;
+  }
+  @media (pointer: coarse) {
+    .dk-mark[data-zone="scrub"],
+    .dk-mark[data-zone="footer"] {
+      --park-y: 8px;
+    }
+  }
+  @keyframes dk-mark-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }

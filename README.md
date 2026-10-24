@@ -41,9 +41,10 @@ The four faces live in `public/fonts/` as woff2 (converted from the TTFs in
 ## Data
 
 `src/data/videos.ts` holds the archive: `{ id, youtubeId, title, creator,
-year, genre, reel, duration, curatorNote, catalogNumber }` plus a `reels`
-array. Structured for a future CMS swap — replace the array's source with a
-fetch, keep the shape.
+year, genre, category, duration, curatorNote, catalogNumber }` plus a
+`categories` array. Words per the 2026-10-24 terminology change (ADR-0006):
+**Reel = one video, Category = thematic group**. Structured for a future CMS
+swap — replace the array's source with a fetch, keep the shape.
 
 **The curator's notes are placeholders**, written to keep frames legible
 during the build. They are the soul of the site — replace each one in

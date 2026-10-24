@@ -1,0 +1,379 @@
+/* ---------------------------------------------------------------------------
+   Category carousel (ADR-0006) — ported from `Inspo/aistudio-carousel/src/
+   index.css` (.awards-* → .deg-*). Geometry is ported verbatim; the chrome is
+   rethemed to the dark archive: token colors/fonts from globals.css
+   (near-black · bone · matte gold · Maghfirea/NeueBrucke instead of the
+   light Dokmeh stage). JS owns the per-slot transforms & kinetic blur
+   (ReelCarousel.updateTransforms); this sheet owns stage geometry + chrome.
+--------------------------------------------------------------------------- */
+
+.deg-section {
+  position: relative;
+
+  /* plans/0007 (D — HUGE, as approved): the base ticket box + its FOCUSED
+     visual halves, all derived from the one width token so they can't
+     drift. --deck-card-w feeds .deg-slot; the focus halves carry the +25%
+     front boost and the paper aspect (3182/1113 → h = w × 0.34979):
+       focus-half-w = w / 2 × 1.25 = 0.625·w
+       focus-half-h = w / 2 × 0.34979 × 1.25 ≈ 0.21862·w
+     The ≤767px block keeps its own literal values (mobile untouched). */
+  --deck-card-w: min(58vw, 76svh);
+  --deck-focus-half-w: calc(var(--deck-card-w) * 0.625);
+  --deck-focus-half-h: calc(var(--deck-card-w) * 0.21862);
+}
+
+.deg-stage {
+  direction: ltr;
+  height: 100svh;
+  position: sticky;
+  top: 0;
+  overflow: clip;
+}
+
+/* Heading — top-left, where the chooser will join it (P3) */
+.deg-heading-box {
+  position: absolute;
+  top: 10.2%;
+  left: 9.5%;
+  z-index: 40;
+}
+
+.deg-heading {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 5vw, 96px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-bone);
+}
+
+/* The deck — perspective on the wrapper, transforms inline on slots */
+.deg-cards {
+  perspective: 1400px;
+  position: absolute;
+  inset: 0;
+}
+
+.deg-slot {
+  backface-visibility: hidden;
+  will-change: transform;
+  width: var(--deck-card-w);
+  position: absolute;
+  top: 49%;
+  left: 48.8%;
+  transform: translate(-50%, -50%);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Kinetic title — beneath the front card, one Reel of travel.
+   Anchors flush to the FOCUSED paper's edge/bottom (plans/0007). */
+.deg-titles {
+  width: 40%;
+  height: 2em;
+  font-family: var(--font-meta);
+  font-size: clamp(20px, 2.4vw, 46px);
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  position: absolute;
+  top: calc(49% + var(--deck-focus-half-h) + 12px);
+  left: calc(48.8% - var(--deck-focus-half-w));
+  color: var(--color-bone);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.deg-title {
+  position: absolute;
+  inset: 0;
+  will-change: transform, opacity, filter;
+}
+
+/* Kinetic note — bottom right: Curator's Note + logistics rows */
+.deg-notes {
+  width: 28%;
+  font-family: var(--font-meta);
+  font-size: clamp(12px, 1.25vw, 24px);
+  position: absolute;
+  bottom: 8%;
+  left: 71.68%;
+  color: var(--color-bone-dim);
+  z-index: 20;
+}
+
+.deg-note {
+  position: absolute;
+  inset: auto 0 0;
+  max-height: 35svh;
+  overflow-y: auto;
+  will-change: transform, opacity, filter;
+}
+
+.deg-note-quote {
+  margin: 0;
+  text-wrap: pretty;
+  font-family: var(--font-quote);
+  font-style: italic;
+  font-size: clamp(0.8rem, 1.05vw, 1.05rem);
+  line-height: 1.6;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-bone-dim);
+}
+
+/* logistics rows (RUNTIME · CATALOG) */
+.deg-note-list {
+  margin: 1rem 0 0;
+  display: flex;
+  gap: 2rem;
+}
+
+.deg-note-list dt {
+  font-size: 0.45rem;
+  letter-spacing: 0.3em;
+  color: var(--color-smoke);
+}
+
+.deg-note-list dd {
+  margin: 0;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-bone-dim);
+}
+
+/* Controls — counter always; round arrows on touch only (cutover decision) */
+.deg-controls {
+  align-items: center;
+  gap: 14px;
+  display: flex;
+  position: absolute;
+  bottom: 6%;
+  left: calc(48.8% - var(--deck-focus-half-w));
+  z-index: 40;
+  user-select: none;
+}
+
+.deg-counter {
+  font-size: 0.7rem;
+  letter-spacing: 0.35em;
+  color: var(--color-smoke);
+}
+
+.deg-controls button {
+  display: none; /* fine pointers: the scroll IS the control */
+  width: 44px;
+  height: 44px;
+  font: inherit;
+  cursor: pointer;
+  color: var(--color-bone);
+  background: rgba(10, 9, 8, 0.6);
+  border: 1px solid var(--color-hairline);
+  border-radius: 50%;
+  font-size: 18px;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.deg-controls button:active {
+  transform: scale(0.96);
+}
+
+.deg-controls button:hover:not(:disabled) {
+  background: var(--color-amber);
+  color: var(--color-ink);
+  border-color: var(--color-amber);
+  transform: scale(1.08);
+}
+
+.deg-controls button:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+@media (pointer: coarse) {
+  .deg-controls button {
+    display: flex;
+  }
+}
+
+@media (pointer: fine) {
+  .deg-controls button:hover:not(:disabled) {
+    transform: scale(1.03);
+  }
+}
+
+/* Scroll hint + progress gauge — centered at the stage's bottom edge
+   (the Curator's call: read it without hunting for it) */
+.deg-hint {
+  align-items: center;
+  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 6%;
+  z-index: 40;
+  user-select: none;
+  font-family: var(--font-meta);
+  font-size: 0.7rem;
+  letter-spacing: 0.35em;
+  color: var(--color-bone);
+  text-shadow: 0 0 12px rgba(201, 162, 106, 0.5);
+}
+
+.deg-hint-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-amber);
+  animation: cue 2.2s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+
+.deg-hint span {
+  font-weight: 600;
+  letter-spacing: 0.2em;
+}
+
+.deg-track {
+  width: 180px;
+  height: 1px;
+  background: var(--color-hairline);
+}
+
+.deg-fill {
+  height: 100%;
+  background: var(--color-amber);
+}
+
+/* ── Mobile ≤767px — ported from the source's media query ──────────────── */
+/* Deck ticket composition — plans/0007.
+   The deck paper shell carries `container-type: inline-size` (TicketFrame
+   deck variant, data-deck-paper). Card width = 100cqw; the paper aspect
+   (3182/1113) locks the stub to ≈35cqw tall, so composing the stub contents
+   in cqw fits the ticket at ANY deck size. The strip variant keeps its
+   rem-based Tailwind sizes (these hooks are scoped under [data-deck-paper]).
+   The kinetic titles/notes and the mobile ticket are untouched. */
+[data-deck-paper] {
+  container-type: inline-size;
+}
+
+[data-deck-paper] .tk-spine-type {
+  font-size: 1.15cqw;
+}
+[data-deck-paper] .tk-catalog {
+  font-size: 1.05cqw;
+  left: 1.5cqw;
+  top: 1.5cqw;
+}
+
+[data-deck-paper] .tk-stub {
+  gap: 1.2cqw;
+}
+[data-deck-paper] .tk-archive {
+  font-size: 1.05cqw;
+}
+[data-deck-paper] .tk-quote-block {
+  padding-left: 1.2cqw;
+}
+[data-deck-paper] .tk-quote-mark {
+  font-size: 2.4cqw;
+}
+[data-deck-paper] .tk-quote {
+  font-size: 2.05cqw;
+  margin-top: 0.5cqw;
+}
+[data-deck-paper] .tk-meta {
+  column-gap: 2cqw;
+  row-gap: 0.6cqw;
+}
+[data-deck-paper] .tk-meta-dt {
+  font-size: 0.72cqw;
+}
+[data-deck-paper] .tk-meta-dd {
+  font-size: 1.05cqw;
+}
+/* WATCH — the price tab rides the deck box too (mobile is outside the
+   container, so this only reaches the paper stub's button) */
+[data-deck-paper] .ticket-stub {
+  font-size: 1.1cqw;
+  padding: 0.9cqw 1.6cqw;
+}
+
+@media (max-width: 767px) {
+  .deg-heading-box {
+    top: max(88px, 10%);
+    left: 6%;
+  }
+
+  .deg-heading {
+    font-size: clamp(36px, 10vw, 56px);
+  }
+
+  .deg-slot {
+    width: min(58vw, 31svh);
+    top: 47%;
+    left: 50%;
+  }
+
+  .deg-titles {
+    width: 80%;
+    font-size: 20px;
+    top: calc(47% + min(21.75vw, 11.625svh) + 12px);
+    left: calc(50% - min(29vw, 15.5svh));
+  }
+
+  .deg-notes {
+    width: 72%;
+    left: calc(50% - min(29vw, 15.5svh));
+    bottom: 11%;
+  }
+
+  .deg-note {
+    max-height: 17svh;
+  }
+
+  .deg-note-list {
+    margin-top: 0.75rem;
+  }
+
+  .deg-controls {
+    bottom: 3%;
+    left: auto;
+    right: 6%;
+  }
+
+  .deg-hint {
+    display: none; /* the gauge steps down for the arrows+counter on touch */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deg-slot {
+    will-change: auto;
+  }
+  .deg-slot * {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .deg-hint-dot {
+    animation: none;
+    opacity: 0.4;
+  }
+
+  .deg-hint {
+    color: var(--color-bone-dim);
+  }
+
+  .deg-controls button {
+    display: none !important;
+  }
+
+  .deg-counter {
+    letter-spacing: 0.2em;
+  }
+}

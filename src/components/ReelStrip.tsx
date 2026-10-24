@@ -3,35 +3,30 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import type { Reel, Video } from "@/types";
+import type { Category, Video } from "@/types";
 import { useLenisInstance } from "@/lib/smooth-scroll";
 import { Intertitle } from "./Intertitle";
-import { Frame } from "./Frame";
 import { WatchModal } from "./WatchModal";
-import { DrumStage } from "./DrumStage";
+import { TicketFrame } from "./TicketFrame";
 
 /**
- * The film reel — all reels and frames in one vertical strip.
+ * The film reel — all categories and frames in one vertical strip. (Legacy
+ * piece: retired at the categories cutover, ADR-0006.)
  * Scroll velocity skews the strip (film pulling through the gate). On fine
  * pointers, when the scroll comes to rest the strip ease-settles to the
  * nearest frame via Lenis — CSS scroll-snap fights Lenis, so it's reserved
  * for touch devices where Lenis stands down (see globals.css).
  */
-export function ReelStrip({ videos, reels }: { videos: Video[]; reels: Reel[] }) {
+export function ReelStrip({
+  videos,
+  categories,
+}: {
+  videos: Video[];
+  categories: Category[];
+}) {
   const stripRef = useRef<HTMLDivElement>(null);
-  const drumAnchorRef = useRef<HTMLElement>(null);
   const lenis = useLenisInstance();
   const [watching, setWatching] = useState<Video | null>(null);
-  const [motionAllowed, setMotionAllowed] = useState(false);
-
-  // the Drum only mounts when motion is allowed (ADR-0002 D9 fallback)
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setMotionAllowed(!mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
 
   // velocity → skew/rotate (film pulling through the gate)
   useEffect(() => {
@@ -40,19 +35,65 @@ export function ReelStrip({ videos, reels }: { videos: Video[]; reels: Reel[] })
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     gsap.registerPlugin(ScrollTrigger);
-    const skewTo = gsap.quickTo(strip, "skewY", { duration: 0.8, ease: "power3" });
-    const rotateTo = gsap.quickTo(strip, "rotate", { duration: 0.9, ease: "power3" });
+    const skewTo = gsap.quickTo(strip, "skewY", { duration: 0.6, ease: "power3.out" });
+    const rotateTo = gsap.quickTo(strip, "rotation", { duration: 0.7, ease: "power3.out" });
     const st = ScrollTrigger.create({
       trigger: strip,
       start: "top bottom",
       end: "bottom top",
       onUpdate: (self) => {
         const v = self.getVelocity();
-        skewTo(gsap.utils.clamp(-1.5, 1.5, v / -400));
-        rotateTo(gsap.utils.clamp(-0.6, 0.6, v / -1200));
+        skewTo(gsap.utils.clamp(-0.6, 0.6, v / -380));
+        rotateTo(gsap.utils.clamp(-0.25, 0.25, v / -900));
       },
     });
     return () => st.kill();
+  }, []);
+
+  // parallax — layered drift on the ticket's type layers; p is 0 exactly
+  // when a card is centered (settle-snap guarantees that at rest), so the
+  // layers always settle flush against the baked perforations/creases.
+  // Rate codes map to plan §6 drift bases: catalog 46px, title 26px
+  // counter-direction, quote 10px. Layers re-queried per tick so refreshes
+  // never orphan the list.
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const PX: Record<number, number> = { 120: 46, 150: -26, 25: 10 };
+    let raf = 0;
+    const tick = () => {
+      raf = 0;
+      const mid = window.innerHeight / 2;
+      const vh = window.innerHeight;
+      strip.querySelectorAll<HTMLElement>("[data-parallax-rate]").forEach((el) => {
+        const base = PX[parseFloat(el.dataset.parallaxRate ?? "0")] ?? 0;
+        if (!base) return;
+        const card = el.closest("[data-snap-point]");
+        if (!card) return;
+        const r = card.getBoundingClientRect();
+        const p = gsap.utils.clamp(-0.5, 0.5, (r.top + r.height / 2 - mid) / vh);
+        el.style.transform = `translate3d(0, ${(p * base * 2).toFixed(2)}px, 0)`;
+      });
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    let resizeTimer: ReturnType<typeof setTimeout> | undefined;
+    const onResize = () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(tick, 120);
+    };
+    window.addEventListener("resize", onResize, { passive: true });
+    raf = requestAnimationFrame(tick);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      if (resizeTimer) clearTimeout(resizeTimer);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
 
   // settle-snap: after the scroll truly comes to rest, ease to the nearest frame (Lenis only)
@@ -76,7 +117,7 @@ export function ReelStrip({ videos, reels }: { videos: Video[]; reels: Reel[] })
         }
         const mid = window.innerHeight / 2;
         let best: { dist: number } | null = null;
-        strip.querySelectorAll<HTMLElement>("[data-frame]").forEach((el) => {
+        strip.querySelectorAll<HTMLElement>("[data-snap-point]").forEach((el) => {
           // viewport-relative geometry — offsetTop is strip-relative, not document-relative
           const center = el.getBoundingClientRect().top + el.offsetHeight / 2;
           const dist = center - mid;
@@ -115,82 +156,27 @@ export function ReelStrip({ videos, reels }: { videos: Video[]; reels: Reel[] })
     };
   }, [lenis]);
 
-  // the scroll-mode archive stands down while the drum is pinned
-  // (gsap skew + settle-snap stop responding; the DOM stays for fallback)
-  useEffect(() => {
-    const deactivate = () => stripRef.current?.classList.add("drum-standby");
-    const activate = () => stripRef.current?.classList.remove("drum-standby");
-    window.addEventListener("dk:drum:pin", deactivate);
-    window.addEventListener("dk:drum:unpin", activate);
-    return () => {
-      window.removeEventListener("dk:drum:pin", deactivate);
-      window.removeEventListener("dk:drum:unpin", activate);
-    };
-  }, []);
-
-  // clear the re-pin suppression flag once we're past the pin zone
-  // (the sentinel's bottom has scrolled completely off screen)
-  useEffect(() => {
-    const anchor = drumAnchorRef.current;
-    if (!anchor) return;
-    const clearOnUnpin = () => {
-      const rect = anchor.getBoundingClientRect();
-      if (rect.bottom < 0) {
-        window.dispatchEvent(new CustomEvent("dk:drum:clear-suppress"));
-      }
-    };
-    window.addEventListener("dk:drum:unpin", clearOnUnpin);
-    return () => window.removeEventListener("dk:drum:unpin", clearOnUnpin);
-  }, []);
-
-  const unpinDrum = () => {
-    window.dispatchEvent(new CustomEvent("dk:drum:unpin"));
-    lenis?.start();
-  };
-
-  // the stage's footer exit asks the host to ease down once it has unpinned
-  useEffect(() => {
-    const onScrollTo = (e: Event) => {
-      const target = (e as CustomEvent<number>).detail ?? document.body.scrollHeight;
-      if (lenis) {
-        lenis.scrollTo(target, { duration: 1.2 });
-      } else {
-        window.scrollTo({ top: target, behavior: "smooth" });
-      }
-    };
-    window.addEventListener("dk:drum:scroll-to", onScrollTo);
-    return () => window.removeEventListener("dk:drum:scroll-to", onScrollTo);
-  }, [lenis]);
-
   return (
     <>
-      {/* drum mount anchor: a full-viewport sentinel at the archive's start —
-          scrolling from the hero crosses it and pins the drum */}
-      <section
-        ref={drumAnchorRef}
-        aria-hidden
-        className="h-[100svh] w-full"
-      />
-
       <div
         ref={stripRef}
         className="snap-strip relative will-change-transform"
         style={{ transformOrigin: "50% 50%" }}
       >
-        {reels.map((reel) => (
-          <Fragment key={reel.slug}>
-            <Intertitle reel={reel} />
+        {categories.map((category) => (
+          <Fragment key={category.slug}>
+            <Intertitle category={category} />
             {videos
-              .filter((v) => v.reel === reel.slug)
+              .filter((v) => v.category === category.slug)
               .map((video) => (
                 <div
                   key={video.id}
                   data-snap-point
                   className="flex justify-center py-[6vh] md:py-[8vh]"
                 >
-                  <Frame
+                  <TicketFrame
                     video={video}
-                    reelNumber={reel.number}
+                    category={category}
                     onWatch={setWatching}
                   />
                 </div>
@@ -198,17 +184,6 @@ export function ReelStrip({ videos, reels }: { videos: Video[]; reels: Reel[] })
           </Fragment>
         ))}
       </div>
-
-      {motionAllowed && (
-        <DrumStage
-          anchorRef={drumAnchorRef}
-          onUnpin={unpinDrum}
-          onExitToFooter={() => {
-            /* handled inside the stage via dk:drum:scroll-to */
-          }}
-          onWatch={setWatching}
-        />
-      )}
 
       <WatchModal video={watching} onClose={() => setWatching(null)} />
     </>

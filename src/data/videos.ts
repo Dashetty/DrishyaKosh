@@ -1,8 +1,8 @@
-import type { Reel, Video } from "@/types";
+import type { Category, Video } from "@/types";
 
 /* ---------------------------------------------------------------------------
    THE ARCHIVE — swap-ready for a CMS later: replace this array's source with
-   a fetch and keep the Video shape. Order within a reel = running order.
+   a fetch and keep the Video shape. Order within a Category = running order.
 
    ⚠ PLACEHOLDER NOTES: every curatorNote below is a stand-in written to keep
    the frames legible during the build. Replace each with your own one-liner
@@ -11,15 +11,15 @@ import type { Reel, Video } from "@/types";
    Verify all youtubeIds with: pnpm verify:videos  (never part of the build)
 --------------------------------------------------------------------------- */
 
-export const reels: Reel[] = [
-  { slug: "reel-01", number: "01", title: "Design" },
-  { slug: "reel-02", number: "02", title: "Music" },
-  { slug: "reel-03", number: "03", title: "Cinema" },
-  { slug: "reel-04", number: "04", title: "Short Films" },
+export const categories: Category[] = [
+  { slug: "category-01", number: "01", title: "Design" },
+  { slug: "category-02", number: "02", title: "Music" },
+  { slug: "category-03", number: "03", title: "Cinema" },
+  { slug: "category-04", number: "04", title: "Short Films" },
 ];
 
 export const videos: Video[] = [
-  // ————— REEL 01 — DESIGN —————
+  // ————— CATEGORY 01 — DESIGN —————
   {
     id: "helvetica-trailer",
     youtubeId: "wkoX0pEwSCw",
@@ -27,7 +27,7 @@ export const videos: Video[] = [
     creator: "Gary Hustwit",
     year: 2007,
     genre: "Documentary",
-    reel: "reel-01",
+    category: "category-01",
     duration: "2:19",
     curatorNote: "The typeface that became the atmosphere we all breathe.",
     catalogNumber: "DK-001",
@@ -39,7 +39,7 @@ export const videos: Video[] = [
     creator: "Gary Hustwit",
     year: 2009,
     genre: "Documentary",
-    reel: "reel-01",
+    category: "category-01",
     duration: "1:46",
     curatorNote: "Every object in your room was decided by someone.",
     catalogNumber: "DK-002",
@@ -51,13 +51,13 @@ export const videos: Video[] = [
     creator: "Paula Scher",
     year: 2008,
     genre: "Talk",
-    reel: "reel-01",
+    category: "category-01",
     duration: "21:30",
     curatorNote: "Serious work made with a grin — the whole craft in one talk.",
     catalogNumber: "DK-003",
   },
 
-  // ————— REEL 02 — MUSIC —————
+  // ————— CATEGORY 02 — MUSIC —————
   {
     id: "take-on-me",
     youtubeId: "djV11Xbc914",
@@ -65,7 +65,7 @@ export const videos: Video[] = [
     creator: "a-ha",
     year: 1985,
     genre: "Music Video",
-    reel: "reel-02",
+    category: "category-02",
     duration: "3:53",
     curatorNote: "A pencil sketch that learned to dance.",
     catalogNumber: "DK-004",
@@ -77,7 +77,7 @@ export const videos: Video[] = [
     creator: "Peter Gabriel",
     year: 1986,
     genre: "Music Video",
-    reel: "reel-02",
+    category: "category-02",
     duration: "5:07",
     curatorNote: "Stop-motion as a love language.",
     catalogNumber: "DK-005",
@@ -89,13 +89,13 @@ export const videos: Video[] = [
     creator: "Michael Jackson",
     year: 1983,
     genre: "Music Video",
-    reel: "reel-02",
+    category: "category-02",
     duration: "13:42",
     curatorNote: "The night the music video grew a screenplay.",
     catalogNumber: "DK-006",
   },
 
-  // ————— REEL 03 — CINEMA —————
+  // ————— CATEGORY 03 — CINEMA —————
   {
     id: "kurosawa-composing",
     youtubeId: "doaQC-S8de8",
@@ -103,7 +103,7 @@ export const videos: Video[] = [
     creator: "Every Frame a Painting",
     year: 2015,
     genre: "Video Essay",
-    reel: "reel-03",
+    category: "category-03",
     duration: "8:29",
     curatorNote: "Where the camera stops is where the meaning starts.",
     catalogNumber: "DK-007",
@@ -115,7 +115,7 @@ export const videos: Video[] = [
     creator: "Every Frame a Painting",
     year: 2015,
     genre: "Video Essay",
-    reel: "reel-03",
+    category: "category-03",
     duration: "8:17",
     curatorNote: "Stunts no insurer would approve today, done with a straight face.",
     catalogNumber: "DK-008",
@@ -127,7 +127,7 @@ export const videos: Video[] = [
     creator: "Every Frame a Painting",
     year: 2016,
     genre: "Video Essay",
-    reel: "reel-03",
+    category: "category-03",
     duration: "9:25",
     curatorNote: "Editing is rhythm before it is technique.",
     catalogNumber: "DK-009",
@@ -139,13 +139,13 @@ export const videos: Video[] = [
     creator: "Stanley Kubrick",
     year: 1980,
     genre: "Trailer",
-    reel: "reel-03",
+    category: "category-03",
     duration: "1:59",
     curatorNote: "An elevator of blood as a marketing strategy.",
     catalogNumber: "DK-010",
   },
 
-  // ————— REEL 04 — SHORT FILMS —————
+  // ————— CATEGORY 04 — SHORT FILMS —————
   {
     id: "car-rains",
     youtubeId: "acxz7hUwwEU",
@@ -153,7 +153,7 @@ export const videos: Video[] = [
     creator: "Luda",
     year: 2023,
     genre: "Short Film",
-    reel: "reel-04",
+    category: "category-04",
     duration: "11:10",
     curatorNote: "A deadpan prophecy — the sky as an unpaid car-wash critic.",
     catalogNumber: "DK-011",
@@ -165,7 +165,7 @@ export const videos: Video[] = [
     creator: "Luda",
     year: 2023,
     genre: "Short Film",
-    reel: "reel-04",
+    category: "category-04",
     duration: "8:27",
     curatorNote: "One question, and a whole life quietly unspooling from it.",
     catalogNumber: "DK-012",
