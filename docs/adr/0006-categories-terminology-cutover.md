@@ -54,3 +54,14 @@ requirements came with it:
   the app.
 - Success criteria and the port's exact equations live in
   `plans/0006-categories-carousel-cutover.md` §1 and §6.
+
+## Amendment — 2026-10-25 (deck pacing + proximity settle)
+
+The deck engine now maps the sticky stage to `100 + (n-1)·52` svh (was 60)
+and, once scroll input has been idle for ~240 ms while the stage is pinned,
+eases the page to the nearest Reel so a ticket always lands centred. Both
+are tuning of decision 3, not a new control model: movement remains
+scroll-driven, the round arrows remain touch-only, and a front click still
+opens the Watch lightbox. The shorter track keeps the 1-Reel-to-1-panel
+mapping with less empty scroll; the settle is the carousel-level successor
+to the retired strip's settle-snap gate.

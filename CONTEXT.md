@@ -110,8 +110,8 @@ intro. Static, not drifting.
 **Aperture Cursor** — the custom cursor (center dot + ring) that contracts
 over interactive elements. Hidden on fine pointers.
 
-**Grain** — subtle film grain (2-3% opacity) applied to the viewport edges
-and hero background. Static, revealed on hover, off on mobile.
+**Grain** — a constant 4% film wash over the whole viewport. Static; there is
+no hover reveal (the layer takes no pointer input), and it is off on mobile.
 
 ## Style Guide
 
