@@ -56,7 +56,7 @@ export function WatchModal({
             <button
               type="button"
               onClick={onClose}
-              className="font-meta text-[0.6rem] tracking-[0.35em] text-bone-dim transition-colors hover:text-amber"
+              className="relative inline-flex items-center font-meta text-[0.6rem] tracking-[0.35em] text-bone-dim transition-colors before:absolute before:-inset-x-3 before:-inset-y-[15px] before:content-[''] hover:text-amber"
               aria-label="Close"
             >
               ✕ CLOSE
@@ -84,7 +84,7 @@ export function WatchModal({
               href={youtubeUrl(video.youtubeId)}
               target="_blank"
               rel="noreferrer"
-              className="font-meta text-[0.6rem] tracking-[0.3em] text-amber underline-offset-4 hover:underline"
+              className="inline-flex min-h-11 items-center font-meta text-[0.6rem] tracking-[0.3em] text-amber underline-offset-4 hover:underline"
             >
               OPEN ON YOUTUBE ↗
             </a>

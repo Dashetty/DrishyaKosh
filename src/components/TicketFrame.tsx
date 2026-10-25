@@ -253,7 +253,7 @@ export function TicketFrame({
             </p>
 
             {watchBtn(
-              "absolute bottom-3 right-3 z-10 px-4 py-2 text-[0.58rem]",
+              "absolute bottom-3 right-3 z-10 min-h-11 px-4 py-2 text-[0.58rem]",
               `Watch ${video.title} (${video.duration})`,
             )}
           </div>

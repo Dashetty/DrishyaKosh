@@ -55,7 +55,7 @@ export function Footer({
       <button
         type="button"
         onClick={flipItOver}
-        className="ticket-stub border border-bone/30 px-7 py-3 font-meta text-[0.65rem] tracking-[0.4em] text-bone transition-colors duration-300 hover:border-amber hover:bg-amber hover:text-ink"
+        className="ticket-stub inline-flex min-h-11 items-center justify-center border border-bone/30 px-7 py-3 font-meta text-[0.65rem] tracking-[0.4em] text-bone transition-colors duration-300 hover:border-amber hover:bg-amber hover:text-ink"
       >
         FLIP IT OVER →
       </button>
@@ -72,7 +72,7 @@ export function Footer({
               <a
                 href="#section-carousel"
                 onClick={(e) => toCategory(e, category)}
-                className="group flex items-baseline justify-between gap-4 px-2 py-3 font-meta text-[0.7rem] tracking-[0.35em] transition-colors duration-300 hover:bg-bone/5"
+                className="group flex min-h-11 items-center justify-between gap-4 px-2 py-3 font-meta text-[0.7rem] tracking-[0.35em] transition-colors duration-300 hover:bg-bone/5"
               >
                 <span className={`${CATEGORY_SPINE[category.slug].accent}`}>
                   CATEGORY {category.number}
