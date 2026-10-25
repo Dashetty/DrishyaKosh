@@ -85,20 +85,35 @@ export function TicketFrame({
     };
   }, [isDeck]);
 
-  const watchBtn = (extra: string, label: string) => (
-    <button
-      type="button"
-      tabIndex={tabbable ? undefined : -1}
-      onClick={(e) => {
-        if (isDeck) e.stopPropagation();
-        onWatch(video);
-      }}
-      className={`ticket-stub border border-bone/30 bg-ink/60 font-meta tracking-[0.35em] text-bone transition-[color,background-color,border-color,scale] duration-200 hover:border-amber hover:bg-amber hover:text-ink active:scale-[0.96] ${extra}`}
-      aria-label={label}
-    >
-      <span className="-me-[0.35em]">▶ WATCH</span>
-    </button>
-  );
+  const watchBtn = (extra: string, label: string) => {
+    const stub = `ticket-stub inline-block border border-bone/30 bg-ink/60 font-meta tracking-[0.35em] text-bone ${extra}`;
+
+    // Deck tickets behind the front card: the stub is a printed mark, not a
+    // control. A background click is the "bring this ticket forward" gesture,
+    // and a focusable button here would put N ghost stops in the tab order
+    // (its slot is aria-hidden, so it must not contain anything focusable).
+    if (!tabbable) {
+      return (
+        <span aria-hidden className={`${stub} select-none`}>
+          <span className="-me-[0.35em]">▶ WATCH</span>
+        </span>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          if (isDeck) e.stopPropagation();
+          onWatch(video);
+        }}
+        className={`${stub} transition-[color,background-color,border-color,scale] duration-200 hover:border-amber hover:bg-amber hover:text-ink active:scale-[0.96]`}
+        aria-label={label}
+      >
+        <span className="-me-[0.35em]">▶ WATCH</span>
+      </button>
+    );
+  };
 
   return (
     <article
@@ -217,7 +232,12 @@ export function TicketFrame({
             ))}
           </dl>
 
-          {/* WATCH — the price tab */}
+          {/* WATCH — the price tab. Deliberately type-small on the paper
+              ticket: the whole card is the click target (a front press opens
+              the lightbox, see ReelCarousel.onSlotClick), so this stub is an
+              affordance rather than a 44px hit area. The compact mobile
+              ticket, which has no card-level press of its own, carries
+              min-h-11 on the stub instead. */}
           {watchBtn("mt-3 self-end px-4 py-2 text-[0.58rem]", `Watch ${video.title} (${video.duration})`)}
         </div>
       </div>

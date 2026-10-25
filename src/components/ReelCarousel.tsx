@@ -76,6 +76,14 @@ const smoothstep = (a: number, b: number, v: number) => {
   return t * t * (3 - 2 * t);
 };
 
+/** True while the sticky stage covers the viewport (sub-pixel tolerant). */
+const isStagePinned = (rect: DOMRect) =>
+  rect.top <= 2 && rect.bottom >= window.innerHeight - 2;
+
+/** Document Y that puts Reel `index` at the front of the stage. */
+const reelScrollY = (sectionTop: number, index: number, scrollable: number, total: number) =>
+  sectionTop + (index / Math.max(1, total - 1)) * scrollable;
+
 export function ReelCarousel({
   videos,
   category = null,
@@ -112,14 +120,16 @@ export function ReelCarousel({
   const playingRef = useRef(false);
   const registeredRef = useRef(false);
 
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [announced, setAnnounced] = useState(0);
-  const [watching, setWatching] = useState<Video | null>(null);
-  const announcedRef = useRef(0);
-
   // Re-key the slots on the Reel list so stale transforms don't linger
   const reelKey = useMemo(() => videos.map((v) => v.id).join("|"), [videos]);
   const slotCount = total + 12;
+
+  const [activeIndex, setActiveIndex] = useState(0);
+  // the announcement is scoped to its list: a Category swap makes the old
+  // index derive as 0 instead of announcing "Reel 6 of 3"
+  const [announcement, setAnnouncement] = useState({ key: reelKey, index: 0 });
+  const [watching, setWatching] = useState<Video | null>(null);
+  const announcedRef = useRef({ key: reelKey, index: 0 });
 
   /** Paint the whole deck at fractional position `e`. Composite-only. */
   const paint = useCallback(
@@ -158,8 +168,8 @@ export function ReelCarousel({
           : -dir * ROT_MAX * (1 - Math.exp(-d / ROT_B));
         // raised cosine: 1 at the gate, 0 one slot out — zero slope at both
         // ends, so the front card never "pops" into focus
-        const near = d >= 1 ? 0 : 0.5 + 0.5 * Math.cos(Math.PI * d);
-        const scale = 1 + focusAmt * near;
+        const focusWeight = d >= 1 ? 0 : 0.5 + 0.5 * Math.cos(Math.PI * d);
+        const scale = 1 + focusAmt * focusWeight;
         const z = -DEPTH * Math.min(d, 4);
 
         slot.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(
@@ -189,8 +199,8 @@ export function ReelCarousel({
       videos.forEach((_, t) => {
         const delta = t - e;
         const dist = Math.abs(delta);
-        const near = t === rounded;
-        const factor = near ? 1 - smoothstep(0.34, 0.5, dist) : 0;
+        const isCurrent = t === rounded;
+        const factor = isCurrent ? 1 - smoothstep(0.34, 0.5, dist) : 0;
         const titleEl = titleRefs.current[t];
         const noteEl = noteRefs.current[t];
         const lift = reduced ? 0 : -26 * Math.max(-0.5, Math.min(0.5, delta));
@@ -273,8 +283,7 @@ export function ReelCarousel({
     if (!section) return;
 
     const rect = section.getBoundingClientRect();
-    const pinned = rect.top <= 2 && rect.bottom >= window.innerHeight - 2;
-    if (!pinned) return;
+    if (!isStagePinned(rect)) return;
 
     const e = targetRef.current;
     const nearest = Math.round(e);
@@ -283,7 +292,7 @@ export function ReelCarousel({
     const scrollable = section.scrollHeight - window.innerHeight;
     if (scrollable <= 0) return;
     const top = window.scrollY + rect.top;
-    const y = top + (nearest / (total - 1)) * scrollable;
+    const y = reelScrollY(top, nearest, scrollable, total);
 
     if (lenis) {
       lenis.scrollTo(y, {
@@ -302,14 +311,15 @@ export function ReelCarousel({
       // announce once the deck has come to rest, not on every intermediate
       // index while a scrub is still in flight
       const rect = sectionRef.current?.getBoundingClientRect();
-      const pinned = !!rect && rect.top <= 2 && rect.bottom >= window.innerHeight - 2;
-      if (pinned && activeRef.current !== announcedRef.current) {
-        announcedRef.current = activeRef.current;
-        setAnnounced(activeRef.current);
+      const next = { key: reelKey, index: activeRef.current };
+      const prev = announcedRef.current;
+      if (rect && isStagePinned(rect) && (prev.key !== next.key || prev.index !== next.index)) {
+        announcedRef.current = next;
+        setAnnouncement(next);
       }
       settle();
     }, SETTLE_IDLE);
-  }, [compute, settle]);
+  }, [compute, settle, reelKey]);
 
   /** Measure the stage + the ticket box so CSS can anchor to the front card. */
   const measure = useCallback(() => {
@@ -354,7 +364,7 @@ export function ReelCarousel({
 
       const rect = section.getBoundingClientRect();
       const top = window.scrollY + rect.top;
-      const target = top + (clamped / Math.max(1, total - 1)) * scrollable;
+      const target = reelScrollY(top, clamped, scrollable, total);
       if (lenis) {
         lenis.scrollTo(target, { duration: 1.15 });
       } else if (reducedRef.current) {
@@ -424,6 +434,9 @@ export function ReelCarousel({
     targetRef.current = 0;
     visualRef.current = 0;
     progressRef.current = -1;
+    // the live region belongs to the Reel list: without this, swapping from a
+    // 9-Reel to a 3-Reel Category would announce "Reel 6 of 3"
+    announcedRef.current = { key: reelKey, index: 0 };
     measure();
     compute();
   }, [reelKey, total, measure, compute]);
@@ -433,12 +446,15 @@ export function ReelCarousel({
     const onKey = (ev: KeyboardEvent) => {
       // the Watch lightbox owns the keyboard while it is open
       if (document.querySelector("dialog[open]")) return;
+      // a focused Curator's Note is its own scroll region — let ↑/↓ move the
+      // note instead of stepping the deck
+      if ((ev.target as Element | null)?.closest?.(".deg-note")) return;
       const section = sectionRef.current;
       if (!section) return;
       const rect = section.getBoundingClientRect();
       // sub-pixel tolerance: the stage's document top is rarely integral, so
       // a strict `top <= 0` disarms the keys for the whole section
-      if (!(rect.top <= 2 && rect.bottom >= window.innerHeight - 2)) return;
+      if (!isStagePinned(rect)) return;
 
       if (ev.key === "ArrowRight" || ev.key === "ArrowDown") {
         ev.preventDefault();
@@ -469,6 +485,12 @@ export function ReelCarousel({
   const chip = category
     ? `CATEGORY ${category.number}`
     : `ALL CATEGORIES · ${total} REELS`;
+  // clamp: a Category swap can leave the announced index past the new list
+  const announcedIndex =
+    announcement.key === reelKey
+      ? Math.min(announcement.index, Math.max(0, total - 1))
+      : 0;
+  const announcedTitle = videos[announcedIndex]?.title;
 
   return (
     <section
@@ -509,6 +531,7 @@ export function ReelCarousel({
                 className="deg-slot cursor-pointer"
                 onClick={() => onSlotClick(t, projectIndex, video)}
                 title={video.title}
+                aria-hidden={t === LEAD_SLOTS + activeIndex ? undefined : true}
               >
                 <div
                   ref={(el) => {
@@ -560,7 +583,10 @@ export function ReelCarousel({
               }}
               className="deg-note"
               data-lenis-prevent
-              aria-hidden={t !== activeIndex}
+              role="region"
+              aria-label={`Curator's note — ${video.title}`}
+              tabIndex={t === activeIndex ? 0 : -1}
+              aria-hidden={t === activeIndex ? undefined : true}
             >
               <span className="font-meta text-[0.6rem] tracking-[0.45em] text-smoke block">
                 {video.creator.toUpperCase()} · {video.year} · {video.genre.toUpperCase()}
@@ -587,9 +613,7 @@ export function ReelCarousel({
 
         {/* Live region — announces the Reel after the deck has settled */}
         <p className="sr-only" aria-live="polite" aria-atomic="true">
-          {videos[Math.min(announced, total - 1)]
-            ? `Reel ${announced + 1} of ${total}: ${videos[Math.min(announced, total - 1)].title}`
-            : ""}
+          {announcedTitle ? `Reel ${announcedIndex + 1} of ${total}: ${announcedTitle}` : ""}
         </p>
 
         {/* Controls — prev/next live on coarse pointers; counter always */}

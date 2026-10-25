@@ -292,9 +292,9 @@ dialog::backdrop {
 @media (prefers-reduced-motion: no-preference) {
   dialog {
     transition:
-      opacity 0.22s cubic-bezier(0.2, 0, 0, 1),
-      translate 0.22s cubic-bezier(0.2, 0, 0, 1),
-      scale 0.22s cubic-bezier(0.2, 0, 0, 1);
+      opacity 0.24s cubic-bezier(0.23, 1, 0.32, 1),
+      translate 0.24s cubic-bezier(0.23, 1, 0.32, 1),
+      scale 0.24s cubic-bezier(0.23, 1, 0.32, 1);
   }
   dialog[open] {
     opacity: 1;
@@ -312,8 +312,8 @@ dialog::backdrop {
 
   dialog::backdrop {
     transition:
-      background-color 0.22s ease,
-      backdrop-filter 0.22s ease;
+      background-color 0.24s ease,
+      backdrop-filter 0.24s ease;
   }
   @starting-style {
     dialog[open]::backdrop {
