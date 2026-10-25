@@ -134,12 +134,12 @@ export function LoadingScreen() {
 
       <h1
         data-wordmark
-        className="font-display text-[clamp(1.6rem,4.5vw,3.2rem)] uppercase tracking-[0.14em] text-bone opacity-0"
+        className="font-display -me-[0.14em] text-[clamp(1.6rem,4.5vw,3.2rem)] uppercase tracking-[0.14em] text-bone opacity-0"
       >
         Drishyakosh
       </h1>
 
-      <p className="absolute bottom-20 font-meta text-[0.55rem] tracking-[0.4em] text-smoke sm:bottom-8">
+      <p className="absolute bottom-20 -me-[0.4em] font-meta text-[0.55rem] tracking-[0.4em] text-smoke sm:bottom-8">
         CLICK TO THREAD THE PROJECTOR
       </p>
 
@@ -148,7 +148,7 @@ export function LoadingScreen() {
         data-skip
         className="absolute right-5 bottom-5 inline-flex min-h-11 items-center justify-center border border-smoke/40 px-4 py-3 font-meta text-[0.55rem] tracking-[0.3em] text-smoke uppercase transition-colors hover:border-amber hover:text-amber sm:right-8 sm:bottom-8"
       >
-        Skip intro
+        <span className="-me-[0.3em]">Skip intro</span>
       </button>
     </div>
   );

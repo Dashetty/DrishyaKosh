@@ -92,7 +92,7 @@ export function TicketFrame({
       className={`ticket-stub border border-bone/30 bg-ink/60 font-meta tracking-[0.35em] text-bone transition-colors duration-300 hover:border-amber hover:bg-amber hover:text-ink active:scale-[0.96] ${extra}`}
       aria-label={label}
     >
-      ▶ WATCH
+      <span className="-me-[0.35em]">▶ WATCH</span>
     </button>
   );
 

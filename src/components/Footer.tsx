@@ -57,7 +57,7 @@ export function Footer({
         onClick={flipItOver}
         className="ticket-stub inline-flex min-h-11 items-center justify-center border border-bone/30 px-7 py-3 font-meta text-[0.65rem] tracking-[0.4em] text-bone transition-colors duration-300 hover:border-amber hover:bg-amber hover:text-ink"
       >
-        FLIP IT OVER →
+        <span className="-me-[0.4em]">FLIP IT OVER →</span>
       </button>
 
       {/* GET THE REEL — one direct line per Category (reel counts live in
@@ -77,7 +77,7 @@ export function Footer({
                 <span className={`${CATEGORY_SPINE[category.slug].accent}`}>
                   CATEGORY {category.number}
                 </span>
-                <span className="text-bone transition-colors duration-300 group-hover:text-bone">
+                <span className="-me-[0.35em] text-bone transition-colors duration-300 group-hover:text-bone">
                   {category.title.toUpperCase()}
                 </span>
               </a>

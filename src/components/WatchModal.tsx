@@ -59,7 +59,7 @@ export function WatchModal({
               className="relative inline-flex items-center font-meta text-[0.6rem] tracking-[0.35em] text-bone-dim transition-colors before:absolute before:-inset-x-3 before:-inset-y-[15px] before:content-[''] hover:text-amber"
               aria-label="Close"
             >
-              ✕ CLOSE
+              <span className="-me-[0.35em]">✕ CLOSE</span>
             </button>
           </div>
 
