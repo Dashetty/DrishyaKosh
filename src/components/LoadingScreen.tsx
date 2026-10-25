@@ -17,12 +17,15 @@ export function LoadingScreen() {
     if (!root) return;
     if (!document.documentElement.classList.contains("intro-pending")) return;
 
+    const page = document.getElementById("page-content");
+
     const finish = () => {
       try {
         sessionStorage.setItem(INTRO_FLAG, "1");
       } catch {
         /* private mode — intro just replays next visit */
       }
+      page?.removeAttribute("inert");
       document.documentElement.classList.remove("intro-pending");
       window.dispatchEvent(new Event("dk:intro:done"));
     };
@@ -31,6 +34,10 @@ export function LoadingScreen() {
       finish();
       return;
     }
+
+    // The overlay is the only thing on screen — take the page underneath out
+    // of the tab order and the accessibility tree until the intro is done.
+    page?.setAttribute("inert", "");
 
     const beam = root.querySelector<HTMLElement>("[data-beam]");
     const wordmark = root.querySelector<HTMLElement>("[data-wordmark]");
@@ -95,6 +102,7 @@ export function LoadingScreen() {
       tl.kill();
       root.removeEventListener("click", skip);
       window.removeEventListener("keydown", onKeyDown);
+      page?.removeAttribute("inert");
     };
   }, []);
 

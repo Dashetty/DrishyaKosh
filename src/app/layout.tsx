@@ -51,7 +51,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Sprockets />
           <Cursor />
           <LoadingScreen />
-          {children}
+          <div id="page-content">{children}</div>
         </SmoothScroll>
       </body>
     </html>
