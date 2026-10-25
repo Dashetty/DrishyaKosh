@@ -111,7 +111,6 @@
 .deg-title {
   position: absolute;
   inset: 0;
-  will-change: transform, opacity, filter;
 }
 
 /* Kinetic note — bottom right: Curator's Note + logistics rows */
@@ -131,7 +130,7 @@
   inset: auto 0 0;
   max-height: 35svh;
   overflow-y: auto;
-  will-change: transform, opacity, filter;
+  overscroll-behavior: contain;
 }
 
 .deg-note-quote {

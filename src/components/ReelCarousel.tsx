@@ -113,7 +113,9 @@ export function ReelCarousel({
   const registeredRef = useRef(false);
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [announced, setAnnounced] = useState(0);
   const [watching, setWatching] = useState<Video | null>(null);
+  const announcedRef = useRef(0);
 
   // Re-key the slots on the Reel list so stale transforms don't linger
   const reelKey = useMemo(() => videos.map((v) => v.id).join("|"), [videos]);
@@ -296,7 +298,17 @@ export function ReelCarousel({
   const onScroll = useCallback(() => {
     compute();
     window.clearTimeout(settleTimer.current);
-    settleTimer.current = window.setTimeout(settle, SETTLE_IDLE);
+    settleTimer.current = window.setTimeout(() => {
+      // announce once the deck has come to rest, not on every intermediate
+      // index while a scrub is still in flight
+      const rect = sectionRef.current?.getBoundingClientRect();
+      const pinned = !!rect && rect.top <= 2 && rect.bottom >= window.innerHeight - 2;
+      if (pinned && activeRef.current !== announcedRef.current) {
+        announcedRef.current = activeRef.current;
+        setAnnounced(activeRef.current);
+      }
+      settle();
+    }, SETTLE_IDLE);
   }, [compute, settle]);
 
   /** Measure the stage + the ticket box so CSS can anchor to the front card. */
@@ -419,6 +431,8 @@ export function ReelCarousel({
   // keyboard stepping (stage must cover the viewport to take the keys)
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
+      // the Watch lightbox owns the keyboard while it is open
+      if (document.querySelector("dialog[open]")) return;
       const section = sectionRef.current;
       if (!section) return;
       const rect = section.getBoundingClientRect();
@@ -503,7 +517,12 @@ export function ReelCarousel({
                   aria-hidden
                   className="deg-slot-glow"
                 />
-                <TicketFrame video={video} variant="deck" onWatch={setWatching} />
+                <TicketFrame
+                  video={video}
+                  variant="deck"
+                  onWatch={setWatching}
+                  tabbable={t === LEAD_SLOTS + activeIndex}
+                />
                 <div
                   ref={(el) => {
                     shadeRefs.current[t] = el;
@@ -540,6 +559,7 @@ export function ReelCarousel({
                 noteRefs.current[t] = el;
               }}
               className="deg-note"
+              data-lenis-prevent
               aria-hidden={t !== activeIndex}
             >
               <span className="font-meta text-[0.6rem] tracking-[0.45em] text-smoke block">
@@ -565,9 +585,11 @@ export function ReelCarousel({
           ))}
         </div>
 
-        {/* Live region — the projector announces the frame at the gate */}
+        {/* Live region — announces the Reel after the deck has settled */}
         <p className="sr-only" aria-live="polite" aria-atomic="true">
-          Reel {videos[activeIndex]?.title}. Curator&apos;s note: {videos[activeIndex]?.curatorNote}
+          {videos[Math.min(announced, total - 1)]
+            ? `Reel ${announced + 1} of ${total}: ${videos[Math.min(announced, total - 1)].title}`
+            : ""}
         </p>
 
         {/* Controls — prev/next live on coarse pointers; counter always */}

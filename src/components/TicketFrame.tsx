@@ -36,6 +36,7 @@ export function TicketFrame({
   variant = "strip",
   category,
   onWatch,
+  tabbable = true,
 }: {
   video: Video;
   /** "strip" = linear flow; "deck" = carousel slot (slot owns the box) */
@@ -43,6 +44,8 @@ export function TicketFrame({
   /** the ticket's category — resolved from the archive when omitted */
   category?: Category;
   onWatch: (video: Video) => void;
+  /** false for deck tickets behind the front card, which are out of reach */
+  tabbable?: boolean;
 }) {
   const isDeck = variant === "deck";
   const { src, onError } = useThumbFallback(video.youtubeId);
@@ -85,6 +88,7 @@ export function TicketFrame({
   const watchBtn = (extra: string, label: string) => (
     <button
       type="button"
+      tabIndex={tabbable ? undefined : -1}
       onClick={(e) => {
         if (isDeck) e.stopPropagation();
         onWatch(video);
