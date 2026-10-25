@@ -36,12 +36,11 @@ export function LoadingScreen() {
     const wordmark = root.querySelector<HTMLElement>("[data-wordmark]");
 
     const tl = gsap.timeline({ onComplete: finish });
-    tl.set(root, { clipPath: "inset(0% 0% 0% 0%)" })
-      .fromTo(
-        beam,
-        { scaleY: 0, opacity: 0 },
-        { scaleY: 1, opacity: 1, duration: 0.35, ease: "power2.out" }
-      )
+    tl.fromTo(
+      beam,
+      { scaleY: 0, opacity: 0 },
+      { scaleY: 1, opacity: 1, duration: 0.35, ease: "power2.out" }
+    )
       .fromTo(
         wordmark,
         { opacity: 0, scale: 0.94 },
@@ -58,9 +57,9 @@ export function LoadingScreen() {
       .to(
         root,
         {
-          clipPath: "inset(0% 0% 100% 0%)",
-          duration: 0.7,
-          ease: "power4.inOut",
+          yPercent: -100,
+          duration: 0.5,
+          ease: "power4.out",
         },
         "+=0.1"
       )
