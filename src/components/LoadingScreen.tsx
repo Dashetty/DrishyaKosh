@@ -92,12 +92,19 @@ export function LoadingScreen() {
         <div className="w-1 h-1 rounded-full bg-amber/40" />
       </div>
 
-      {/* projector light beam */}
+      {/* projector light beam — two layers so they never fight:
+          the outer div is the GSAP layer (geometry + opacity fades), the
+          inner line carries the CSS flicker. One element doing both meant
+          the keyframes overrode GSAP's entrance/exit opacity. */}
       <div
         data-beam
-        className="anim-beam absolute left-1/2 top-1/2 h-[62vh] w-px -translate-x-1/2 -translate-y-1/2 bg-bone/90"
-        style={{ boxShadow: "0 0 24px 4px rgba(232, 224, 207, 0.45)" }}
-      />
+        className="absolute left-1/2 top-1/2 h-[62vh] w-px -translate-x-1/2 -translate-y-1/2"
+      >
+        <div
+          className="anim-beam h-full w-full bg-bone/90"
+          style={{ boxShadow: "0 0 24px 4px rgba(232, 224, 207, 0.45)" }}
+        />
+      </div>
 
       <h1
         data-wordmark

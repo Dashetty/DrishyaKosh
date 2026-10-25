@@ -300,9 +300,11 @@ html.intro-pending [data-intro-overlay] {
 
 /* Beam pre-paint state — GSAP grows it from 0 inside the intro timeline.
    Without this, the full-height line flashes between first paint and
-   hydration (the timeline only exists after React mounts). */
-html.intro-pending [data-intro-overlay] .anim-beam {
-  transform: scaleY(0);
+   hydration (the timeline only exists after React mounts). The translate
+   mirrors the element's centering utilities so GSAP inherits the same
+   anchor when it takes over. */
+html.intro-pending [data-intro-overlay] [data-beam] {
+  transform: translate(-50%, -50%) scaleY(0);
 }
 
 /* Touch devices: native scroll-snap settling (Lenis stands down on touch) */
