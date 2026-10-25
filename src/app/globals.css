@@ -82,14 +82,14 @@ body {
   outline-offset: 3px;
 }
 
-/* Full-aperture cursor — native cursor hidden on fine pointers only */
+/* Full-aperture cursor — native cursor hidden only once the custom one is live */
 @media (pointer: fine) {
-  html,
-  body,
-  a,
-  button,
-  [data-frame],
-  dialog {
+  html[data-cursor="fine"],
+  html[data-cursor="fine"] body,
+  html[data-cursor="fine"] a,
+  html[data-cursor="fine"] button,
+  html[data-cursor="fine"] [data-frame],
+  html[data-cursor="fine"] dialog {
     cursor: none;
   }
 }

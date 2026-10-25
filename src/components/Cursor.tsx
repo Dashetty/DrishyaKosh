@@ -14,6 +14,11 @@ export function Cursor() {
     const ring = ringRef.current;
     if (!dot || !ring) return;
 
+    // Only hide the native cursor once the aperture is actually wired up, so a
+    // slow/failed hydration never leaves fine pointers with no cursor at all.
+    const root = document.documentElement;
+    root.dataset.cursor = "fine";
+
     gsap.set([dot, ring], { xPercent: -50, yPercent: -50, opacity: 0 });
     const ringX = gsap.quickTo(ring, "x", { duration: 0.32, ease: "power3" });
     const ringY = gsap.quickTo(ring, "y", { duration: 0.32, ease: "power3" });
@@ -54,6 +59,7 @@ export function Cursor() {
       window.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseover", onOver, true);
       document.removeEventListener("mouseout", onOut, true);
+      delete root.dataset.cursor;
     };
   }, []);
 
@@ -62,12 +68,12 @@ export function Cursor() {
       <div
         ref={dotRef}
         aria-hidden
-        className="pointer-events-none fixed left-0 top-0 z-[90] h-1 w-1 rounded-full bg-bone"
+        className="pointer-events-none fixed left-0 top-0 z-[90] h-1 w-1 rounded-full bg-bone opacity-0"
       />
       <div
         ref={ringRef}
         aria-hidden
-        className="pointer-events-none fixed left-0 top-0 z-[90] h-7 w-7 rounded-full border border-bone/80 mix-blend-difference"
+        className="pointer-events-none fixed left-0 top-0 z-[90] h-7 w-7 rounded-full border border-bone/80 opacity-0 mix-blend-difference"
       />
     </>
   );
