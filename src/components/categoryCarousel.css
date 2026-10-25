@@ -10,16 +10,13 @@
 .deg-section {
   position: relative;
 
-  /* plans/0007 (D — HUGE, as approved): the base ticket box + its FOCUSED
-     visual halves, all derived from the one width token so they can't
-     drift. --deck-card-w feeds .deg-slot; the focus halves carry the +25%
-     front boost and the paper aspect (3182/1113 → h = w × 0.34979):
-       focus-half-w = w / 2 × 1.25 = 0.625·w
-       focus-half-h = w / 2 × 0.34979 × 1.25 ≈ 0.21862·w
-     The ≤767px block keeps its own literal values (mobile untouched). */
-  --deck-card-w: min(58vw, 76svh);
-  --deck-focus-half-w: calc(var(--deck-card-w) * 0.625);
-  --deck-focus-half-h: calc(var(--deck-card-w) * 0.21862);
+  /* The deck box is one token; the FOCUSED card's half-extents are measured
+     from the live DOM (ReelCarousel.measure) and published as
+     --deck-front-half-w / -h. That keeps the kinetic title and the controls
+     registered to the front card at any size — desktop paper, mobile
+     compact ticket, any viewport. The JS engine's focus boost lives in
+     ReelCarousel.tsx (FOCUS), so nothing here can drift from it. */
+  --deck-card-w: min(50vw, 78svh);
 }
 
 .deg-stage {
@@ -65,21 +62,49 @@
   -webkit-user-select: none;
 }
 
+/* Stage light — a pre-painted warm bloom behind the front ticket. Only its
+   opacity is animated, so the glow never repaints a shadow per frame. */
+.deg-slot-glow {
+  position: absolute;
+  inset: 8% 4%;
+  z-index: 0;
+  border-radius: 10px;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    55% 75% at 50% 48%,
+    rgba(201, 162, 106, 0.32) 0%,
+    rgba(201, 162, 106, 0.1) 50%,
+    transparent 78%
+  );
+}
+
+/* Depth shade — ink veil that dims the rows behind the front card. */
+.deg-slot-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  background: var(--color-ink);
+}
+
 /* Kinetic title — beneath the front card, one Reel of travel.
-   Anchors flush to the FOCUSED paper's edge/bottom (plans/0007). */
+   Anchored to the measured FOCUSED paper edge/bottom. */
 .deg-titles {
-  width: 40%;
+  width: 46%;
   height: 2em;
   font-family: var(--font-meta);
-  font-size: clamp(20px, 2.4vw, 46px);
+  font-size: clamp(20px, 2.5vw, 48px);
   line-height: 1.3;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   position: absolute;
-  top: calc(49% + var(--deck-focus-half-h) + 12px);
-  left: calc(48.8% - var(--deck-focus-half-w));
+  top: calc(49% + var(--deck-front-half-h, 0px) + 14px);
+  left: calc(48.8% - var(--deck-front-half-w, 0px));
   color: var(--color-bone);
-  z-index: 20;
+  z-index: 450;
   pointer-events: none;
 }
 
@@ -98,7 +123,7 @@
   bottom: 8%;
   left: 71.68%;
   color: var(--color-bone-dim);
-  z-index: 20;
+  z-index: 450;
 }
 
 .deg-note {
@@ -149,8 +174,8 @@
   display: flex;
   position: absolute;
   bottom: 6%;
-  left: calc(48.8% - var(--deck-focus-half-w));
-  z-index: 40;
+  left: calc(48.8% - var(--deck-front-half-w, 0px));
+  z-index: 460;
   user-select: none;
 }
 
@@ -247,6 +272,8 @@
 .deg-fill {
   height: 100%;
   background: var(--color-amber);
+  transform-origin: left center;
+  will-change: transform;
 }
 
 /* ── Mobile ≤767px — ported from the source's media query ──────────────── */
@@ -304,6 +331,13 @@
 }
 
 @media (max-width: 767px) {
+  .deg-section {
+    /* mobile rides the compact (portrait) ticket, so the box is width-led;
+       the front boost is smaller (FOCUS.mobile = 0.32) and the half-extents
+       come from the DOM measurement, not a paper-aspect guess */
+    --deck-card-w: min(60vw, 34svh);
+  }
+
   .deg-heading-box {
     top: max(88px, 10%);
     left: 6%;
@@ -314,30 +348,22 @@
   }
 
   .deg-slot {
-    width: min(58vw, 31svh);
     top: 47%;
     left: 50%;
   }
 
   .deg-titles {
-    width: 80%;
-    font-size: 20px;
-    top: calc(47% + min(21.75vw, 11.625svh) + 12px);
-    left: calc(50% - min(29vw, 15.5svh));
+    width: 86%;
+    font-size: 22px;
+    top: calc(47% + var(--deck-front-half-h, 0px) + 18px);
+    left: calc(50% - var(--deck-front-half-w, 0px));
   }
 
+  /* the compact ticket already carries creator / year / genre / runtime and
+     the Curator's Note — the bottom-right note would just repeat it (and
+     collide with the title), so it steps off the mobile stage */
   .deg-notes {
-    width: 72%;
-    left: calc(50% - min(29vw, 15.5svh));
-    bottom: 11%;
-  }
-
-  .deg-note {
-    max-height: 17svh;
-  }
-
-  .deg-note-list {
-    margin-top: 0.75rem;
+    display: none;
   }
 
   .deg-controls {
