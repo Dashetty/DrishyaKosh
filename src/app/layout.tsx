@@ -22,6 +22,21 @@ export const metadata: Metadata = {
   title,
   description,
   metadataBase: new URL(siteUrl),
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
+      ...[16, 32, 48, 64, 128, 192, 512].map((size) => ({
+        url: `/favicon-${size}x${size}.png`,
+        sizes: `${size}x${size}`,
+        type: "image/png",
+      })),
+    ],
+    apple: {
+      url: "/favicon-180x180.png",
+      sizes: "180x180",
+      type: "image/png",
+    },
+  },
 };
 
 export const viewport: Viewport = {
