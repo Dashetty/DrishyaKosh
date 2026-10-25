@@ -144,11 +144,7 @@ body {
   100% { transform: scale(1.5); opacity: 0; }
 }
 
-/* Loader: sprocket crawl + beam shimmer */
-@keyframes crawl {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-48px); }
-}
+/* Loader: beam shimmer */
 @keyframes beam {
   0%, 100% { opacity: 0.75; }
   45%      { opacity: 1; }
@@ -156,40 +152,9 @@ body {
 }
 
 .anim-grain   { animation: grain 0.9s steps(8, end) infinite; }
-  .anim-flicker { animation: flicker 9s linear infinite; }
-  .anim-cue     { animation: cue 2.2s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
-  .anim-beam    { animation: beam 1.6s steps(3, end) infinite; }
-  .anim-crawl   { animation: crawl 0.9s steps(6, end) infinite; }
-
-  /* Intro pending state - hide elements until intro animation plays */
-  html.intro-pending .hero-title,
-  html.intro-pending .hero-name,
-  html.intro-pending .hero-tagline,
-  html.intro-pending .hero-cue {
-    opacity: 0;
-  }
-
-  /* Hide hero items before animation runs (transition from hidden state) */
-  .hero-item {
-    opacity: 0;
-    transform: translateY(24px);
-    will-change: opacity, transform;
-    visibility: hidden;
-  }
-
-  /* When reduced motion, show hero immediately */
-  @media (prefers-reduced-motion: reduce) {
-    .hero-item {
-      opacity: 1;
-      transform: none;
-      visibility: visible;
-    }
-  }
-
-  /* After animation completes (GSAP sets opacity:1), ensure visibility is also shown */
-  .hero-item.heroshown {
-    visibility: visible;
-  }
+.anim-flicker { animation: flicker 9s linear infinite; }
+.anim-cue     { animation: cue 2.2s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
+.anim-beam    { animation: beam 1.6s steps(3, end) infinite; }
 
 /* Projector hold — the film stops while the lightbox is open */
 .projector-hold .anim-grain,
@@ -203,7 +168,6 @@ body {
   .anim-flicker,
   .anim-leak,
   .anim-cue,
-  .anim-crawl,
   .anim-beam {
     animation: none !important;
   }
