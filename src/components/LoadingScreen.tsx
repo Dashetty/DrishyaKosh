@@ -65,15 +65,33 @@ export function LoadingScreen() {
       )
       .to(beam, { opacity: 0, duration: 0.2 });
 
+    // Guarded so click, the skip button, and Escape can't finish twice.
     const skip = () => {
+      if (!document.documentElement.classList.contains("intro-pending")) return;
       tl.kill();
       finish();
     };
+    // Clicking anywhere on the overlay skips — the skip button's click
+    // bubbles up to this same handler.
     root.addEventListener("click", skip, { once: true });
+
+    // Keyboard escape hatch. Enter/Space work natively via the skip button,
+    // which takes focus so it is the first tab stop (the page behind the
+    // overlay is still focusable while it covers the viewport).
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      skip();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    root
+      .querySelector<HTMLButtonElement>("[data-skip]")
+      ?.focus({ preventScroll: true });
 
     return () => {
       tl.kill();
       root.removeEventListener("click", skip);
+      window.removeEventListener("keydown", onKeyDown);
     };
   }, []);
 
@@ -81,11 +99,16 @@ export function LoadingScreen() {
     <div
       ref={rootRef}
       data-intro-overlay
+      role="dialog"
+      aria-modal="true"
+      aria-label="Drishyakosh intro"
       className="fixed inset-0 z-[100] items-center justify-center bg-ink"
-      aria-hidden
     >
       {/* subtle sprocket dots at top and bottom for film reference */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2">
+      <div
+        aria-hidden
+        className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2"
+      >
         <div className="w-1 h-1 rounded-full bg-amber/40" />
         <div className="w-1 h-1 rounded-full bg-amber/40" />
         <div className="w-1 h-1 rounded-full bg-amber/40" />
@@ -97,6 +120,7 @@ export function LoadingScreen() {
           the keyframes overrode GSAP's entrance/exit opacity. */}
       <div
         data-beam
+        aria-hidden
         className="absolute left-1/2 top-1/2 h-[62vh] w-px -translate-x-1/2 -translate-y-1/2"
       >
         <div
@@ -112,9 +136,17 @@ export function LoadingScreen() {
         Drishyakosh
       </h1>
 
-      <p className="absolute bottom-8 font-meta text-[0.55rem] tracking-[0.4em] text-smoke">
+      <p className="absolute bottom-20 font-meta text-[0.55rem] tracking-[0.4em] text-smoke sm:bottom-8">
         CLICK TO THREAD THE PROJECTOR
       </p>
+
+      <button
+        type="button"
+        data-skip
+        className="absolute right-5 bottom-5 border border-smoke/40 px-4 py-3 font-meta text-[0.55rem] tracking-[0.3em] text-smoke uppercase transition-colors hover:border-amber hover:text-amber sm:right-8 sm:bottom-8"
+      >
+        Skip intro
+      </button>
     </div>
   );
 }
