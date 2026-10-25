@@ -44,8 +44,14 @@ export function LoadingScreen() {
       )
       .fromTo(
         wordmark,
-        { opacity: 0, letterSpacing: "0.6em" },
-        { opacity: 1, letterSpacing: "0.14em", duration: 0.6, ease: "power2.out" },
+        { opacity: 0, scale: 0.94 },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.6,
+          ease: "power2.out",
+          transformOrigin: "50% 50%",
+        },
         "<0.05"
       )
       .to(beam, { opacity: 0.85, duration: 0.15 })
@@ -95,7 +101,7 @@ export function LoadingScreen() {
 
       <h1
         data-wordmark
-        className="font-display text-[clamp(1.6rem,4.5vw,3.2rem)] uppercase text-bone opacity-0"
+        className="font-display text-[clamp(1.6rem,4.5vw,3.2rem)] uppercase tracking-[0.14em] text-bone opacity-0"
       >
         Drishyakosh
       </h1>
