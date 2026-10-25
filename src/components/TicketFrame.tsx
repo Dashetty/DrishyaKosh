@@ -89,7 +89,7 @@ export function TicketFrame({
         if (isDeck) e.stopPropagation();
         onWatch(video);
       }}
-      className={`ticket-stub border border-bone/30 bg-ink/60 font-meta tracking-[0.35em] text-bone backdrop-blur-sm transition-colors duration-300 hover:border-amber hover:bg-amber hover:text-ink active:scale-[0.96] ${extra}`}
+      className={`ticket-stub border border-bone/30 bg-ink/60 font-meta tracking-[0.35em] text-bone transition-colors duration-300 hover:border-amber hover:bg-amber hover:text-ink active:scale-[0.96] ${extra}`}
       aria-label={label}
     >
       ▶ WATCH
@@ -99,7 +99,7 @@ export function TicketFrame({
   return (
     <article
       ref={ref}
-      className={`relative mx-auto flex justify-center will-change-transform ${
+      className={`relative mx-auto flex justify-center ${
         isDeck
           ? "w-full"
           : "w-[calc(100vw-2.5rem)] md:w-[calc(100vw-5rem)]"
@@ -174,7 +174,7 @@ export function TicketFrame({
           {/* catalog corner — layer class for the future parallax driver */}
           <p
             data-parallax-rate="120"
-            className="tk-catalog absolute left-3 top-3 z-10 font-meta tracking-[0.35em] text-bone-dim [text-shadow:0_2px_12px_rgba(10,9,8,0.9)] will-change-transform"
+            className="tk-catalog absolute left-3 top-3 z-10 font-meta tracking-[0.35em] text-bone-dim [text-shadow:0_2px_12px_rgba(10,9,8,0.9)]"
           >
             {video.catalogNumber} · CATEGORY {cat.number}
           </p>
@@ -247,7 +247,7 @@ export function TicketFrame({
 
             <p
               data-parallax-rate="120"
-              className="absolute left-2 top-2 z-10 font-meta text-[0.6rem] tracking-[0.35em] text-bone-dim [text-shadow:0_2px_12px_rgba(10,9,8,0.9)] will-change-transform"
+              className="absolute left-2 top-2 z-10 font-meta text-[0.6rem] tracking-[0.35em] text-bone-dim [text-shadow:0_2px_12px_rgba(10,9,8,0.9)]"
             >
               {video.catalogNumber} · CATEGORY {cat.number}
             </p>
