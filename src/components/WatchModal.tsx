@@ -68,7 +68,7 @@ export function WatchModal({
             title={video.title}
             allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
-            className="aspect-video w-full rounded-lg border border-hairline bg-black"
+            className="aspect-video w-full rounded-lg bg-black outline outline-1 -outline-offset-1 outline-white/10"
           />
 
           <div className="mt-4 flex flex-wrap items-baseline justify-between gap-3">

@@ -159,7 +159,7 @@ export function TicketFrame({
             visible as the fold), the die-cut wedge slots (right, 65.9%+),
             full height. duotone-paper vignette separates on the cream edges */}
         <div className="absolute inset-y-0 left-[8.8%] right-[34.5%]">
-          <div className="duotone-paper relative h-full w-full overflow-hidden">
+          <div className="duotone-paper relative h-full w-full overflow-hidden outline outline-1 -outline-offset-1 outline-black/10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={src}
@@ -233,7 +233,7 @@ export function TicketFrame({
 
         <div className="relative min-w-0 flex-1 p-2">
           <div className="relative w-full">
-            <div className="duotone relative aspect-[16/10] w-full overflow-hidden rounded-[0.35rem] border border-hairline bg-ink">
+            <div className="duotone relative aspect-[16/10] w-full overflow-hidden rounded-[0.35rem] bg-ink outline outline-1 -outline-offset-1 outline-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={src}
