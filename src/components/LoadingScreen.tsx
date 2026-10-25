@@ -80,6 +80,9 @@ export function LoadingScreen() {
     // overlay is still focusable while it covers the viewport).
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
+      // The listener lives for the session; never swallow Escape once the
+      // intro is gone.
+      if (!document.documentElement.classList.contains("intro-pending")) return;
       event.preventDefault();
       skip();
     };
