@@ -89,7 +89,7 @@ export function TicketFrame({
         if (isDeck) e.stopPropagation();
         onWatch(video);
       }}
-      className={`ticket-stub border border-bone/30 bg-ink/60 font-meta tracking-[0.35em] text-bone transition-colors duration-300 hover:border-amber hover:bg-amber hover:text-ink active:scale-[0.96] ${extra}`}
+      className={`ticket-stub border border-bone/30 bg-ink/60 font-meta tracking-[0.35em] text-bone transition-[color,background-color,border-color,scale] duration-200 hover:border-amber hover:bg-amber hover:text-ink active:scale-[0.96] ${extra}`}
       aria-label={label}
     >
       <span className="-me-[0.35em]">▶ WATCH</span>

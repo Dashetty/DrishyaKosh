@@ -146,7 +146,7 @@ export function LoadingScreen() {
       <button
         type="button"
         data-skip
-        className="absolute right-5 bottom-5 inline-flex min-h-11 items-center justify-center border border-smoke/40 px-4 py-3 font-meta text-[0.55rem] tracking-[0.3em] text-smoke uppercase transition-colors hover:border-amber hover:text-amber sm:right-8 sm:bottom-8"
+        className="absolute right-5 bottom-5 inline-flex min-h-11 items-center justify-center border border-smoke/40 px-4 py-3 font-meta text-[0.55rem] tracking-[0.3em] text-smoke uppercase transition-[color,border-color,scale] duration-200 hover:border-amber hover:text-amber active:scale-[0.96] sm:right-8 sm:bottom-8"
       >
         <span className="-me-[0.3em]">Skip intro</span>
       </button>
