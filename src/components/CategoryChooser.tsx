@@ -55,8 +55,10 @@ export function CategoryChooser({
               type="button"
               onClick={() => onSelect(category)}
               aria-pressed={isActive}
-              className={`group relative flex flex-col gap-8 bg-ink-2 p-6 text-left transition-colors duration-300 hover:bg-bone/5 ${
-                isActive ? "bg-bone/[0.06]" : ""
+              className={`group relative flex flex-col gap-8 p-6 text-left transition-colors duration-300 ${
+                isActive
+                  ? "bg-bone/[0.07] hover:bg-bone/[0.1]"
+                  : "bg-ink-2 hover:bg-bone/5"
               }`}
             >
               <span className="flex items-baseline justify-between gap-4">
