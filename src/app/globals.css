@@ -294,27 +294,6 @@ dialog::backdrop {
     .animation-delay-800 {
       animation-delay: 0.8s;
     }
-
-    /* Subtle grain at viewport edges — 2% opacity, revealed on hover */
-    .subtle-grain {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 0;
-    }
-    .subtle-grain:hover {
-      opacity: 0.15;
-    }
-    .subtle-grain::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M3 3h2v2H3z' fill='%23e8e0cf' fill-opacity='0.04'/%3E%3C/svg%3E");
-      background-size: 8px 8px;
-      opacity: 0.7;
-    }
   }
 
   /* Grain in the hero section — always present but very subtle */
