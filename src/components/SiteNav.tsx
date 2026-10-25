@@ -77,7 +77,7 @@ export function SiteNav() {
   return (
     <div
       ref={navRef}
-      className="dk-mark fixed inset-x-0 top-0 z-40 flex justify-center"
+      className="dk-mark"
       data-zone={zone}
     >
       <span className="reel-mark block size-16 md:size-24" aria-hidden="true" />

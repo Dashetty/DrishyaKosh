@@ -68,6 +68,7 @@ body {
   background: var(--color-ink);
   color: var(--color-bone);
   font-family: var(--font-body);
+  margin: 0;
   overflow-x: clip;
 }
 
@@ -382,9 +383,17 @@ dialog::backdrop {
   /* ─── Decorative reel mark (ADR-0004, revised) ──────────────────────────
      The mark is chrome, not navigation: it shows, threads to the film's
      color and fades in the dead zones, and never takes input. The archive
-     scrolls itself; the footer's FLIP IT OVER is the only return-to-top. */
+     scrolls itself; the footer's FLIP IT OVER is the only return-to-top.
+     NOTE: positioning lives here (not in a utility class) — a `fixed`
+     utility loses to this block's later rule, which left the nav in flow
+     and pushed the hero down by the mark's height. */
   .dk-mark {
-    position: relative;
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    justify-content: center;
     transform: translateY(var(--park-y, 0px));
     opacity: 1;
     transition:
