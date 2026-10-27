@@ -36,7 +36,8 @@
 .deg-heading-box {
   position: absolute;
   top: 10.2%;
-  left: 6%;
+  /* 6% gutter, but never under the film rail */
+  left: max(6%, calc(var(--rail-w) + 1.5rem));
   z-index: 40;
 }
 
@@ -130,7 +131,8 @@
   position: absolute;
   top: calc(49% + var(--deck-front-half-h, 0px) + 1.75rem);
   bottom: calc(6% + 2rem);
-  right: 6%;
+  /* 6% gutter, but never under the film rail */
+  right: max(6%, calc(var(--rail-w) + 1.5rem));
   color: var(--color-bone-dim);
   z-index: 450;
 }

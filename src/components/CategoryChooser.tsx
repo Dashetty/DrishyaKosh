@@ -30,7 +30,7 @@ export function CategoryChooser({
     <section
       id="section-chooser"
       aria-label="Choose a Category"
-      className="relative flex flex-col gap-12 px-6 pt-28 pb-16 md:px-10 md:pt-40 md:pb-24"
+      className="relative flex flex-col gap-12 px-6 pt-28 pb-16 md:px-10 md:pt-40 md:pb-24 lg:px-[calc(2.5rem+var(--rail-w))]"
     >
       <header className="flex flex-col gap-5">
         <div className="flex items-center gap-5">
@@ -45,7 +45,9 @@ export function CategoryChooser({
       </header>
 
       {/* typographic cards — one per Category, spine accent on the number */}
-      <div className="grid grid-cols-1 gap-px border border-hairline bg-hairline sm:grid-cols-2 lg:grid-cols-4">
+      {/* four across only once the film rails have room for it; 1024–1279
+          keeps two up so the category labels never wrap */}
+      <div className="grid grid-cols-1 gap-px border border-hairline bg-hairline sm:grid-cols-2 xl:grid-cols-4">
         {categories.map((category) => {
           const isActive = active?.slug === category.slug;
           const spine = CATEGORY_SPINE[category.slug];
