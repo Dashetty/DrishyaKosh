@@ -310,11 +310,6 @@
 [data-deck-paper] .tk-spine-type {
   font-size: 1.15cqw;
 }
-[data-deck-paper] .tk-catalog {
-  font-size: 1.05cqw;
-  left: 1.5cqw;
-  top: 1.5cqw;
-}
 
 [data-deck-paper] .tk-stub {
   gap: 1.2cqw;

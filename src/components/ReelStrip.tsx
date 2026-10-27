@@ -53,15 +53,15 @@ export function ReelStrip({
   // parallax — layered drift on the ticket's type layers; p is 0 exactly
   // when a card is centered (settle-snap guarantees that at rest), so the
   // layers always settle flush against the baked perforations/creases.
-  // Rate codes map to plan §6 drift bases: catalog 46px, title 26px
-  // counter-direction, quote 10px. Layers re-queried per tick so refreshes
-  // never orphan the list.
+  // Rate codes map to plan §6 drift bases: title 26px counter-direction,
+  // quote 10px (the artwork's catalog plate was retired 2026-10-27). Layers
+  // re-queried per tick so refreshes never orphan the list.
   useEffect(() => {
     const strip = stripRef.current;
     if (!strip) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const PX: Record<number, number> = { 120: 46, 150: -26, 25: 10 };
+    const PX: Record<number, number> = { 150: -26, 25: 10 };
     let raf = 0;
     const tick = () => {
       raf = 0;

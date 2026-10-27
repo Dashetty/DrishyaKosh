@@ -55,6 +55,15 @@ requirements came with it:
 - Success criteria and the port's exact equations live in
   `plans/0006-categories-carousel-cutover.md` §1 and §6.
 
+## Amendment — 2026-10-27 (catalog plate retired)
+
+The artwork no longer carries the `DK-001 · CATEGORY 01` plate at its
+top-left. The Curator retired it: the ticket spine already names the Category
+in the same eyeline, and the number still travels with the Reel as ticket
+metadata (the carousel's logistics rows, the compact mobile category bar and
+the Watch lightbox). This narrows decision 2's visible-copy list; the spine
+copy stands.
+
 ## Amendment — 2026-10-27 (hint line retired)
 
 The deck's bottom hint is now the progress gauge alone. The Curator retired

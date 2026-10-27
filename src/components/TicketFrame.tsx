@@ -189,14 +189,6 @@ export function TicketFrame({
               className="h-full w-full object-cover"
             />
           </div>
-
-          {/* catalog corner — layer class for the future parallax driver */}
-          <p
-            data-parallax-rate="120"
-            className="tk-catalog absolute left-3 top-3 z-10 font-meta tracking-[0.35em] text-bone-dim [text-shadow:0_2px_12px_rgba(10,9,8,0.9)]"
-          >
-            {video.catalogNumber} · CATEGORY {cat.number}
-          </p>
         </div>
 
         {/* stub — right of the baked perforation */}
@@ -268,13 +260,6 @@ export function TicketFrame({
                 className="h-full w-full object-cover"
               />
             </div>
-
-            <p
-              data-parallax-rate="120"
-              className="absolute left-2 top-2 z-10 font-meta text-[0.6rem] tracking-[0.35em] text-bone-dim [text-shadow:0_2px_12px_rgba(10,9,8,0.9)]"
-            >
-              {video.catalogNumber} · CATEGORY {cat.number}
-            </p>
 
             {watchBtn(
               "absolute bottom-3 right-3 z-10 min-h-11 px-4 py-2 text-[0.58rem]",

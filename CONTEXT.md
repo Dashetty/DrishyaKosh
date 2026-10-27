@@ -35,9 +35,8 @@ of a Frame (below the frame on mobile). One text, two renderings — the data
 field is `curatorNote`; do not introduce a separate "quote" concept.
 
 **Frame** — the core unit: one Reel (video) presented as a Ticket (graded
-thumbnail, overlapped title, credits row, catalog corner, genre tag,
-Pull-quote, WATCH ticket stub). Twelve Frames in the sample archive, spread
-across the Categories.
+thumbnail, overlapped title, credits row, genre tag, Pull-quote, WATCH ticket
+stub). Twelve Frames in the sample archive, spread across the Categories.
 
 **Reel** — one specific video: a single curated video in the Archive. A
 Category holds multiple Reels; a Frame renders a Reel as a Ticket. (Before
@@ -49,8 +48,9 @@ the film-reel metaphor for a single video.
 Reel, styled after silent-film title cards.
 
 **Catalog Number** — the curator-assigned permanent id of a Frame
-(`DK-001`…), printed top-left with its Reel number. Assigned by a human, never
-derived at runtime; survives reordering and CMS swaps.
+(`DK-001`…). Assigned by a human, never derived at runtime; survives
+reordering and CMS swaps. Rendered as ticket metadata, never overprinted on
+the artwork.
 
 **Duotone Grade** — the desaturated/warm CSS treatment applied to every
 thumbnail so the whole archive reads as one film stock. Lifts on hover to
@@ -76,8 +76,8 @@ multiplied over the baked stub; the artwork fills the body panel flush).
 Mobile keeps the compact card. `TicketFrame.tsx` is the only renderer.
 
 **Layered Parallax** — inside a Ticket, the type layers slide a few pixels
-against the paper as the card drifts past centre: catalog 46px, title/credits
-26px counter-direction, quote 10px, poster and controls anchored. Driven by a
+against the paper as the card drifts past centre: title/credits 26px
+counter-direction, quote 10px, poster and controls anchored. Driven by a
 rAF window-scroll compute (not ScrollTrigger); p is 0 exactly when a card is
 centered, so layers always settle flush against the baked perforations.
 Rates are px of card offset (`data-parallax-rate`).

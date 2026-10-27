@@ -11,7 +11,9 @@ recomposed in **container-query units (cqw)** under `[data-deck-paper]` —
 stub type, quote, meta grid and WATCH all scale with the card so nothing
 can spill at any deck size. The overlapped video title (desktop paper +
 mobile ticket) is removed on the Curator's call — the stage's kinetic
-title is the only title.
+title is the only title. The artwork's catalog plate (`DK-001 · CATEGORY 01`)
+is likewise retired (2026-10-27): the spine already names the Category, and
+the number stays in the ticket's metadata.
 **Supersedes**: nothing; **amends** ADR-0006 §1 (card-box constants only — the
 engine law, scroll driver, and control decisions stay untouched).
 **Motive**: with the deck live and a +25% `FOCUS_SCALE` in, the front ticket
