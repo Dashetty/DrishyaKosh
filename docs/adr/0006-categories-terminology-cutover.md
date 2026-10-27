@@ -55,6 +55,15 @@ requirements came with it:
 - Success criteria and the port's exact equations live in
   `plans/0006-categories-carousel-cutover.md` §1 and §6.
 
+## Amendment — 2026-10-27 (hint line retired)
+
+The deck's bottom hint is now the progress gauge alone. The Curator retired
+the "SCROLL TO MOVE THE REEL · ← → KEYS" line and its pulsing dot (they read
+as clutter); the keyboard step remains, and is still described to assistive
+tech from the stage, while the round arrows remain the visible control on
+coarse pointers. This reverses the plan's "Progress bar + hint line: keep"
+call, not the control model.
+
 ## Amendment — 2026-10-25 (deck pacing + proximity settle)
 
 The deck engine now maps the sticky stage to `100 + (n-1)·52` svh (was 60)

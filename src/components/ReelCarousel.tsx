@@ -22,9 +22,11 @@ import { WatchModal } from "./WatchModal";
  * exponentially with depth, so incoming cards decelerate into the front slot
  * and far cards gather at the edges instead of marching off at constant
  * speed. Rotation is monotonic (0° at the front, growing outward) — a card
- * never twists in and back out on its way to centre. Focus scale is a raised
- * cosine, so the front card holds its size through a small plateau rather
- * than peaking at a single pixel.
+ * never twists in and back out on its way to centre. The slot is laid out at
+ * the FRONT card's size and side cards scale down (s ≤ 1) on a raised cosine,
+ * so the front card holds its size through a small plateau AND its paper type
+ * is rasterised 1:1 — a card blown up from a smaller layout is what made the
+ * stub quote look blurry.
  *
  * The deck is painted imperatively every frame; React state only changes when
  * the whole-Reel index crosses (counter / live region / aria). All per-frame
@@ -52,7 +54,7 @@ const LEAD_SLOTS = 6;
    x = W · LAT_A · (1 − e^(−d / LAT_B))     lateral, saturating
    y = −H · LIFT_A · (1 − e^(−d / LIFT_B))  fan lift, saturating
    θ = −dir · ROT_MAX · (1 − e^(−d / ROT_B)) monotonic bank
-   s = 1 + FOCUS · raised-cosine(d)          front-card size
+   s = n + (1 − n) · raised-cosine(d)         side → front (n = 1/(1+FOCUS))
    z = −DEPTH · min(d, 4)                    parallax depth           */
 const LAT_A = 1.35;
 const LAT_B = 2.2;
@@ -169,7 +171,10 @@ export function ReelCarousel({
         // raised cosine: 1 at the gate, 0 one slot out — zero slope at both
         // ends, so the front card never "pops" into focus
         const focusWeight = d >= 1 ? 0 : 0.5 + 0.5 * Math.cos(Math.PI * d);
-        const scale = 1 + focusAmt * focusWeight;
+        // the slot is laid out at front size; neighbours scale down so the
+        // paper is never rasterised small and blown up (soft stub type)
+        const neighbourScale = 1 / (1 + focusAmt);
+        const scale = neighbourScale + (1 - neighbourScale) * focusWeight;
         const z = -DEPTH * Math.min(d, 4);
 
         slot.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(
@@ -334,10 +339,10 @@ export function ReelCarousel({
     const cardW = slot?.offsetWidth || 0;
     const cardH = slot?.offsetHeight || 0;
     const focus = mobile ? FOCUS.mobile : FOCUS.desktop;
-    const scaleMax = 1 + focus;
 
-    section.style.setProperty("--deck-front-half-w", `${(cardW * scaleMax) / 2}px`);
-    section.style.setProperty("--deck-front-half-h", `${(cardH * scaleMax) / 2}px`);
+    // front card is painted at scale 1, so its half-extents are the layout box
+    section.style.setProperty("--deck-front-half-w", `${cardW / 2}px`);
+    section.style.setProperty("--deck-front-half-h", `${cardH / 2}px`);
 
     dimsRef.current = {
       w,
@@ -588,11 +593,11 @@ export function ReelCarousel({
               tabIndex={t === activeIndex ? 0 : -1}
               aria-hidden={t === activeIndex ? undefined : true}
             >
-              <span className="font-meta text-[0.6rem] tracking-[0.45em] text-smoke block">
-                {video.creator.toUpperCase()} · {video.year} · {video.genre.toUpperCase()}
+              <span className="deg-note-byline">
+                {video.creator} · {video.year} · {video.genre}
               </span>
-              <blockquote className="mt-3 border-l border-amber/60 pl-4">
-                <span aria-hidden className="font-display text-2xl leading-none text-amber/80">
+              <blockquote className="deg-note-blockquote">
+                <span aria-hidden className="deg-note-mark">
                   &ldquo;
                 </span>
                 <p className="deg-note-quote">{video.curatorNote}</p>
@@ -616,8 +621,18 @@ export function ReelCarousel({
           {announcedTitle ? `Reel ${announcedIndex + 1} of ${total}: ${announcedTitle}` : ""}
         </p>
 
+        {/* Keyboard hint — the visual line is retired; AT still hears it */}
+        <p id="deck-keys-hint" className="sr-only">
+          Scroll, or use the arrow keys, to move through the Reels.
+        </p>
+
         {/* Controls — prev/next live on coarse pointers; counter always */}
-        <nav className="deg-controls" aria-label="Move through the Reels" dir="ltr">
+        <nav
+          className="deg-controls"
+          aria-label="Move through the Reels"
+          aria-describedby="deck-keys-hint"
+          dir="ltr"
+        >
           <button
             type="button"
             onClick={() => scrollToIndex(activeIndex - 1)}
@@ -639,10 +654,8 @@ export function ReelCarousel({
           </button>
         </nav>
 
-        {/* Scroll hint + progress — the deck's gauge, bottom right (desktop) */}
-        <div className="deg-hint">
-          <span aria-hidden className="deg-hint-dot" />
-          <span>SCROLL TO MOVE THE REEL · ← → KEYS</span>
+        {/* Progress gauge — the deck's gauge, bottom centre (desktop) */}
+        <div className="deg-hint" aria-hidden="true">
           <div className="deg-track">
             <div ref={fillRef} className="deg-fill" style={{ transform: "scaleX(0)" }} />
           </div>

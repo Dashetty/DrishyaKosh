@@ -80,7 +80,7 @@ export function SiteNav() {
       className="dk-mark"
       data-zone={zone}
     >
-      <span className="reel-mark block size-16 md:size-24" aria-hidden="true" />
+      <span className="reel-mark block size-11 md:size-16" aria-hidden="true" />
     </div>
   );
 }

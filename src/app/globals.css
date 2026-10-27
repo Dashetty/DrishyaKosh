@@ -137,13 +137,6 @@ body {
   background: radial-gradient(circle at 20% 30%, rgba(201, 162, 106, 0.12) 0%, transparent 60%);
 }
 
-/* Scroll cue */
-@keyframes cue {
-  0%   { transform: scale(0.6); opacity: 0.9; }
-  70%  { transform: scale(1.5); opacity: 0; }
-  100% { transform: scale(1.5); opacity: 0; }
-}
-
 /* Loader: beam shimmer */
 @keyframes beam {
   0%, 100% { opacity: 0.75; }
@@ -153,7 +146,6 @@ body {
 
 .anim-grain   { animation: grain 0.9s steps(8, end) infinite; }
 .anim-flicker { animation: flicker 9s linear infinite; }
-.anim-cue     { animation: cue 2.2s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
 .anim-beam    { animation: beam 1.6s steps(3, end) infinite; }
 
 /* Projector hold — the film stops while the lightbox is open */
@@ -167,7 +159,6 @@ body {
   .anim-grain,
   .anim-flicker,
   .anim-leak,
-  .anim-cue,
   .anim-beam {
     animation: none !important;
   }
