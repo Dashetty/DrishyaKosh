@@ -103,8 +103,8 @@ tagline. Scrolls straight into the archive strip (its squeeze-scrub is the
 
 **Sprockets** — the photographed film strip running down both viewport edges
 (desktop only), cut from `public/film-strip@2x.avif` (WebP fallback): leader
-perforations, the DRISHYAKOSH spine and a frame number. The rail is the
-strip's 2× native width (71px), anchored top and cropped by the viewport —
+perforations, the DRISHYAKOSH spine and a frame number. The rail reads
+`--rail-w` (48px at lg and up), anchored top and cropped by the viewport —
 never tiled, because the asset has cut ends. The perforations are punched
 through, so the page shows through them; the right rail is the same strip
 rotated 180° so its spine reads downwards rather than backwards. Static, not

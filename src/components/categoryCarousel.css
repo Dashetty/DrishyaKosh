@@ -46,6 +46,7 @@
   font-size: clamp(40px, 5vw, 96px);
   line-height: 1.1;
   letter-spacing: -0.02em;
+  text-wrap: balance;
   color: var(--color-bone);
 }
 
@@ -79,8 +80,8 @@
   opacity: 0;
   background: radial-gradient(
     55% 75% at 50% 48%,
-    rgba(201, 162, 106, 0.32) 0%,
-    rgba(201, 162, 106, 0.1) 50%,
+    oklch(0.735 0.086 75.8 / 0.32) 0%,
+    oklch(0.735 0.086 75.8 / 0.1) 50%,
     transparent 78%
   );
 }
@@ -220,7 +221,9 @@
   user-select: none;
 }
 
+/* Changing numbers: the counter must not shift as digits tick */
 .deg-counter {
+  font-variant-numeric: tabular-nums;
   font-size: 0.7rem;
   letter-spacing: 0.35em;
   color: var(--color-smoke);
@@ -233,7 +236,7 @@
   font: inherit;
   cursor: pointer;
   color: var(--color-bone);
-  background: rgba(10, 9, 8, 0.6);
+  background: oklch(0.141 0.003 69.4 / 0.6);
   border: 1px solid var(--color-hairline);
   border-radius: 50%;
   font-size: 18px;

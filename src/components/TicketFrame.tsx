@@ -133,8 +133,8 @@ export function TicketFrame({
       <div
         className={`relative hidden md:block md:aspect-[3182/1113] ${
           isDeck
-            ? "w-full max-w-none shadow-[0_44px_90px_-26px_rgba(0,0,0,0.92),0_14px_38px_-14px_rgba(0,0,0,0.72)]"
-            : "w-full max-w-[min(1420px,calc((100svh-11.5rem)*2.8589))] shadow-[0_44px_90px_-26px_rgba(0,0,0,0.92),0_14px_38px_-14px_rgba(0,0,0,0.72)]"
+            ? "w-full max-w-none shadow-[0_44px_90px_-26px_oklch(0_0_0/0.92),0_14px_38px_-14px_oklch(0_0_0/0.72)]"
+            : "w-full max-w-[min(1420px,calc((100svh-11.5rem)*2.8589))] shadow-[0_44px_90px_-26px_oklch(0_0_0/0.92),0_14px_38px_-14px_oklch(0_0_0/0.72)]"
         }`}
         data-deck-paper={isDeck ? "" : undefined}
         style={isDeck ? { containerType: "inline-size" } : undefined}
@@ -235,7 +235,7 @@ export function TicketFrame({
       </div>
 
       {/* ── mobile: compact dark ticket (landscape asset can't fold) ────── */}
-      <div className="relative flex w-full flex-col rounded-[1rem] border border-hairline bg-ink-2 shadow-[0_30px_70px_-22px_rgba(0,0,0,0.9)] md:hidden">
+      <div className="relative flex w-full flex-col rounded-[1rem] border border-hairline bg-ink-2 shadow-[0_30px_70px_-22px_oklch(0_0_0/0.9)] md:hidden">
         <div
           className={`${spine.chip} relative flex h-9 w-full shrink-0 items-center justify-between rounded-[0.9rem] px-4`}
         >

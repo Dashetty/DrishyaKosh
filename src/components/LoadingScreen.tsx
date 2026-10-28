@@ -136,7 +136,7 @@ export function LoadingScreen() {
       >
         <div
           className="anim-beam h-full w-full bg-bone/90"
-          style={{ boxShadow: "0 0 24px 4px rgba(232, 224, 207, 0.45)" }}
+          style={{ boxShadow: "0 0 24px 4px oklch(0.908 0.024 85.8 / 0.45)" }}
         />
       </div>
 

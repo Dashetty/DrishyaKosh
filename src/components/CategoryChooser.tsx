@@ -39,7 +39,7 @@ export function CategoryChooser({
             THE ARCHIVE · {videos.length} REELS · {categories.length} CATEGORIES
           </p>
         </div>
-        <h2 className="font-display text-[clamp(2.75rem,7vw,6.5rem)] uppercase leading-none tracking-[0.04em] text-bone">
+        <h2 className="font-display text-[clamp(2.75rem,7vw,6.5rem)] uppercase leading-none tracking-[0.04em] text-bone [text-wrap:balance]">
           Pick a Category
         </h2>
       </header>
