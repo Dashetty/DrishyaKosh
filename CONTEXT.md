@@ -124,7 +124,12 @@ no hover reveal (the layer takes no pointer input), and it is off on mobile.
 
 Visual treatment follows a professional film archive aesthetic:
 
-- **Palette**: Near-black base (`#0a0908`), warm off-white text (`#f5f1e9`), matte gold accent (`#c7a262`)
+- **Palette**: warm film-stock charcoal base (`oklch(0.148 0.009 65)`),
+  cotton-paper text (`oklch(0.915 0.04 88)`), antique-gold accent
+  (`oklch(0.775 0.13 78)`), all defined in oklch in `globals.css`. Four
+  saturated category spines (signal red · gold · teal · terracotta rust) at
+  one lightness so they read equally vivid; ticket shadows are a cooler
+  black than the page so paper floats above the charcoal.
 - **Typography**: Maghfirea for display (wordmarks, intertitles), NeueBrucke for body
 - **Transitions**: Subtle, purposeful — siena.film-inspired physics, but never distracting
 - **Texture**: Grain and sprockets are present but unobtrusive; they enhance, not compete

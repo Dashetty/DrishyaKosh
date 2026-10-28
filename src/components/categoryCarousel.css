@@ -80,8 +80,8 @@
   opacity: 0;
   background: radial-gradient(
     55% 75% at 50% 48%,
-    oklch(0.735 0.086 75.8 / 0.32) 0%,
-    oklch(0.735 0.086 75.8 / 0.1) 50%,
+    oklch(0.775 0.13 78 / 0.34) 0%,
+    oklch(0.775 0.13 78 / 0.11) 50%,
     transparent 78%
   );
 }
@@ -236,7 +236,7 @@
   font: inherit;
   cursor: pointer;
   color: var(--color-bone);
-  background: oklch(0.141 0.003 69.4 / 0.6);
+  background: oklch(0.148 0.009 65 / 0.6);
   border: 1px solid var(--color-hairline);
   border-radius: 50%;
   font-size: 18px;

@@ -45,7 +45,7 @@ export function WatchModal({
         if (e.target === dialogRef.current) onClose();
       }}
       aria-label={video ? `Watching ${video.title}` : undefined}
-      className="w-[min(64rem,92vw)] rounded-3xl border border-hairline bg-ink-2 p-4 text-bone shadow-[0_40px_120px_oklch(0_0_0/0.9)] backdrop:bg-ink/85 backdrop:backdrop-blur-sm"
+      className="w-[min(64rem,92vw)] rounded-3xl border border-hairline bg-ink-2 p-4 text-bone shadow-[0_40px_120px_oklch(0.06 0.015 240/0.9)] backdrop:bg-ink/85 backdrop:backdrop-blur-sm"
     >
       {video && (
         <div>

@@ -52,14 +52,18 @@
 }
 
 @theme {
-  --color-ink: oklch(0.141 0.003 69.4);
-  --color-ink-2: oklch(0.18 0.009 75);
-  --color-bone: oklch(0.908 0.024 85.8);
-  --color-bone-dim: oklch(0.735 0.033 84.6);
-  --color-smoke: oklch(0.563 0.024 79);
-  --color-amber: oklch(0.735 0.086 75.8);
+  --color-ink: oklch(0.148 0.009 65);
+  --color-ink-2: oklch(0.2 0.022 70);
+  --color-bone: oklch(0.915 0.04 88);
+  --color-bone-dim: oklch(0.74 0.052 80);
+  --color-smoke: oklch(0.565 0.046 75);
+  --color-amber: oklch(0.775 0.13 78);
   --color-signal: oklch(0.628 0.258 29.2);
-  --color-hairline: oklch(0.908 0.024 85.8 / 0.16);
+  /* CINEMA / SHORT FILMS spines — teal and terracotta-leaning rust (ADR:
+     4 distinct saturated hues at one L, 60–80% of each hue's max chroma) */
+  --color-teal: oklch(0.66 0.099 195);
+  --color-rust: oklch(0.66 0.125 42);
+  --color-hairline: oklch(0.915 0.04 88 / 0.16);
 
   --font-display: "Maghfirea", "Iowan Old Style", Georgia, serif;
   --font-meta: "NeueBrucke", "Arial Narrow", "Helvetica Neue", sans-serif;
@@ -146,7 +150,7 @@ body {
   border-radius: 50%;
   opacity: 0.2;
   filter: blur(60px);
-  background: radial-gradient(circle at 20% 30%, oklch(0.735 0.086 75.8 / 0.12) 0%, transparent 60%);
+  background: radial-gradient(circle at 20% 30%, oklch(0.775 0.13 78 / 0.14) 0%, transparent 60%);
 }
 
 /* Loader: beam shimmer */
@@ -211,8 +215,8 @@ body {
   background: radial-gradient(
     120% 90% at 50% 45%,
     transparent 52%,
-    oklch(0.141 0.003 69.4 / 0.65) 88%,
-    oklch(0.141 0.003 69.4 / 0.9) 100%
+    oklch(0.148 0.009 65 / 0.65) 88%,
+    oklch(0.148 0.009 65 / 0.9) 100%
   );
   pointer-events: none;
 }
@@ -222,9 +226,9 @@ body {
 .frame-scrim {
   background: linear-gradient(
     to top,
-    oklch(0.141 0.003 69.4 / 0.92) 0%,
-    oklch(0.141 0.003 69.4 / 0.78) 28%,
-    oklch(0.141 0.003 69.4 / 0.35) 62%,
+    oklch(0.148 0.009 65 / 0.92) 0%,
+    oklch(0.148 0.009 65 / 0.78) 28%,
+    oklch(0.148 0.009 65 / 0.35) 62%,
     transparent 100%
   );
 }
@@ -319,7 +323,7 @@ html.intro-pending [data-intro-overlay] [data-beam] {
 
 /* Watch lightbox backdrop */
 dialog::backdrop {
-  background: oklch(0.141 0.003 69.4 / 0.85);
+  background: oklch(0.148 0.009 65 / 0.85);
   backdrop-filter: blur(4px);
 }
 
@@ -353,7 +357,7 @@ dialog::backdrop {
   }
   @starting-style {
     dialog[open]::backdrop {
-      background-color: oklch(0.141 0.003 69.4 / 0);
+      background-color: oklch(0.148 0.009 65 / 0);
       backdrop-filter: blur(0);
     }
   }
