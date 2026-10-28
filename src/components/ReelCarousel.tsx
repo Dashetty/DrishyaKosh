@@ -29,10 +29,16 @@ import { WatchModal } from "./WatchModal";
  * stub quote look blurry.
  *
  * The deck is painted imperatively every frame; React state only changes when
- * the whole-Reel index crosses (counter / live region / aria). All per-frame
- * work is composite-only: transform, opacity, and visibility. The stage light
- * and the depth shade are pre-painted layers whose opacity we drive, so no
- * box-shadow/filter is recomputed per frame.
+ * the whole-Reel index crosses (counter / live region / aria). Per-frame work
+ * is composite-only: transform, opacity, and visibility. The stage light and
+ * the depth shade are pre-painted layers whose opacity we drive, so no
+ * box-shadow/filter is recomputed per frame — with ONE exception: the
+ * depth-of-field blur on receding slots (paint()). Its value is quantised
+ * into step buckets with half-step hysteresis, so the browser re-rasterises
+ * a card only when a bucket line is crossed mid-travel; at rest the integer
+ * depths land exactly on buckets and hold them, so settled cards never
+ * re-blur. The lateral edge frost (categoryCarousel.css) is the other filter
+ * on the deck, and it is static — cards frost by entering its band.
  *
  * Rest: when the stage is pinned and scroll input goes idle, the page eases
  * to the nearest Reel so a card always lands dead-centre (proximity settle,
@@ -64,6 +70,23 @@ const ROT_MAX = 52;
 const ROT_B = 2.1;
 const DEPTH = 90;
 const FOCUS = { desktop: 0.55, mobile: 0.32 };
+
+/** Depth-of-field blur — the receding card defocuses like a lens pull, and
+    the incoming card is pulled into focus as it lands (d = 0 is always
+    sharp). The ramp starts AFTER the scale drop reads (BLUR_A), so the card
+    first shrinks, then softens. Buckets are BLUR_STEP px wide and resolve in
+    unit values with half-step hysteresis (paint()): a card holds its bucket
+    until the continuous depth crosses a full step, so an edge can never
+    flip-flop the filter. Mobile skips blur entirely: the compact ticket is
+    ink-dark, so there is nothing visible for the blur to recede while its
+    rasterisation would cost on the weakest GPUs — mobile already dims
+    through opacity instead. FOG_MAX is the desaturation shed by the deepest
+    bucket, scaled per bucket so blur and fog always travel together. */
+const BLUR_MAX = { desktop: 14, mobile: 0 };
+const BLUR_STEP = 2;
+const BLUR_A = 0.12;
+const BLUR_B = 2;
+const FOG_MAX = 0.18;
 
 /** visual-position follow time constant (s) — lower = tighter */
 const FOLLOW_TAU = { desktop: 0.07, mobile: 0.095 };
@@ -103,6 +126,8 @@ export function ReelCarousel({
   const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const glowRefs = useRef<(HTMLDivElement | null)[]>([]);
   const shadeRefs = useRef<(HTMLDivElement | null)[]>([]);
+  /** last painted blur bucket per slot — skips redundant filter writes */
+  const blurBuckets = useRef<number[]>([]);
   const titleRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const noteRefs = useRef<(HTMLDivElement | null)[]>([]);
   const fillRef = useRef<HTMLDivElement>(null);
@@ -189,6 +214,36 @@ export function ReelCarousel({
         const nearDim = dims.mobile ? 1 - 0.62 * smoothstep(0.12, 1, d) : 1;
         slot.style.opacity = (farFade * nearDim).toFixed(3);
         slot.style.visibility = d > 3.2 ? "hidden" : "visible";
+
+        // depth-of-field — the outbound card defocuses, the inbound one is
+        // pulled into focus as it lands. Buckets resolve in BLUR_STEP units
+        // with half-step hysteresis: hold the current unit until the
+        // continuous depth crosses a full step, so jitter near a bucket edge
+        // can't flip-flop the filter. raw = 0 (front card, reduced motion,
+        // mobile) always resolves to unit 0, so those cards keep filter:none
+        // and stay crisp/cheap; bucket crossings remain the only
+        // re-rasterisations, never per frame.
+        const blurMax = dims.mobile ? BLUR_MAX.mobile : BLUR_MAX.desktop;
+        const raw =
+          (reduced || !blurMax ? 0 : blurMax * smoothstep(BLUR_A, BLUR_B, d)) /
+          BLUR_STEP;
+        const prev = blurBuckets.current[s];
+        const unit =
+          raw === 0
+            ? 0
+            : prev >= 0 && Math.abs(raw - prev) < 1
+              ? prev
+              : Math.round(raw);
+        if (unit !== prev) {
+          blurBuckets.current[s] = unit;
+          const px = unit * BLUR_STEP;
+          // film fog — deeper rows shed saturation in step with the blur, so
+          // the veil reads as depth rather than as an applied filter. Tied
+          // to the applied bucket, so it re-rasterises on the same crossings.
+          const fog = 1 - FOG_MAX * (px / BLUR_MAX.desktop);
+          slot.style.filter =
+            px > 0 ? `blur(${px}px) saturate(${fog.toFixed(3)})` : "none";
+        }
 
         const glow = glowRefs.current[s];
         if (glow) glow.style.opacity = Math.pow(Math.max(0, 1 - d / 0.9), 2).toFixed(3);
@@ -442,9 +497,12 @@ export function ReelCarousel({
     // the live region belongs to the Reel list: without this, swapping from a
     // 9-Reel to a 3-Reel Category would announce "Reel 6 of 3"
     announcedRef.current = { key: reelKey, index: 0 };
+    // fresh slots start unfiltered; reset the bucket cache so the next paint
+    // re-asserts each card's blur instead of trusting stale per-slot values
+    blurBuckets.current = new Array(slotCount).fill(-1);
     measure();
     compute();
-  }, [reelKey, total, measure, compute]);
+  }, [reelKey, slotCount, measure, compute]);
 
   // keyboard stepping (stage must cover the viewport to take the keys)
   useEffect(() => {
@@ -519,6 +577,10 @@ export function ReelCarousel({
 
         {/* The deck — slots carry the engine transforms; wrapper owns the box */}
         <div className="deg-cards">
+          {/* Edge frost — static progressive-blur bands the slots travel
+              under; see categoryCarousel.css (.deg-frost) for the layering */}
+          <div aria-hidden className="deg-frost deg-frost-l" />
+          <div aria-hidden className="deg-frost deg-frost-r" />
           {Array.from({ length: slotCount }, (_, t) => {
             // JS % keeps the sign of the dividend — normalise it so small
             // Categories (total < LEAD_SLOTS) don't drop their first slots

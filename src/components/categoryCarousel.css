@@ -97,6 +97,43 @@
   background: var(--color-ink);
 }
 
+/* Edge frost — static progressive-blur bands on the stage's lateral edges.
+   backdrop-filter is pre-painted (zero per-frame JS): a card frosts by
+   ENTERING the band, not by filters being recomputed. The mask pair ramps
+   the blur strength across the band (horizontal) and spares the heading
+   zone on top (vertical, intersected). The inner edge stops at 9vw and the
+   front card starts at 48.8% − half-width ≈ 10vw, so the front card never
+   crosses the frost at rest; resting neighbours do, which reads as
+   intentional edge falloff. z-index 401: above every slot (≤400), below the
+   kinetic titles/notes/controls (450/460), so only cards get frosted.
+   Desktop only: the mobile stage is ink-on-ink and shouldn't pay for the
+   backdrop layer on weak GPUs (same reasoning as BLUR_MAX.mobile). */
+.deg-frost {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 401;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  mask-composite: intersect;
+}
+
+.deg-frost-l {
+  left: 0;
+  width: 9vw;
+  mask-image:
+    linear-gradient(to right, black 0%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, transparent 30%, black 46%, black 100%);
+}
+
+.deg-frost-r {
+  right: 0;
+  width: 9vw;
+  mask-image:
+    linear-gradient(to left, black 0%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, transparent 30%, black 46%, black 100%);
+}
+
 /* Kinetic title — beneath the front card, one Reel of travel.
    Anchored to the measured FOCUSED paper edge/bottom. */
 .deg-titles {
@@ -402,6 +439,11 @@
     bottom: 3%;
     left: auto;
     right: 6%;
+  }
+
+  /* mobile skips the frost bands (ink-on-ink stage, GPU cost) */
+  .deg-frost {
+    display: none;
   }
 
   .deg-hint {
