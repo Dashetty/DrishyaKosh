@@ -7,6 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
+    // sRGB equivalent of --color-ink; manifests parse hex, not CSS colors
     background_color: "#0d0a07",
     theme_color: "#0d0a07",
     lang: "en",

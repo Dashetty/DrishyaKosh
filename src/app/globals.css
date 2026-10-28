@@ -65,6 +65,12 @@
   --color-rust: oklch(0.66 0.125 42);
   --color-hairline: oklch(0.915 0.04 88 / 0.16);
 
+  /* Paper shadows — a deeper, cooler black than the page (hue 240 vs the
+     ink's 65), so tickets float above the warm charcoal. One place to tune. */
+  --shadow-paper: 0 44px 90px -26px oklch(0.06 0.015 240 / 0.92), 0 14px 38px -14px oklch(0.06 0.015 240 / 0.72);
+  --shadow-paper-compact: 0 30px 70px -22px oklch(0.06 0.015 240 / 0.9);
+  --shadow-dialog: 0 40px 120px oklch(0.06 0.015 240 / 0.9);
+
   --font-display: "Maghfirea", "Iowan Old Style", Georgia, serif;
   --font-meta: "NeueBrucke", "Arial Narrow", "Helvetica Neue", sans-serif;
   --font-body: "NB International", "Helvetica Neue", Arial, sans-serif;

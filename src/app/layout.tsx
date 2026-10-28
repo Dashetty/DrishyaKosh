@@ -40,6 +40,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // #0d0a07 is the sRGB equivalent of --color-ink (oklch(0.148 0.009 65));
+  // metadata parsers expect a plain hex
   themeColor: "#0d0a07",
   colorScheme: "dark",
 };
