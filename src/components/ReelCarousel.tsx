@@ -238,9 +238,11 @@ export function ReelCarousel({
           blurBuckets.current[s] = unit;
           const px = unit * BLUR_STEP;
           // film fog — deeper rows shed saturation in step with the blur, so
-          // the veil reads as depth rather than as an applied filter. Tied
-          // to the applied bucket, so it re-rasterises on the same crossings.
-          const fog = 1 - FOG_MAX * (px / BLUR_MAX.desktop);
+          // the veil reads as depth rather than as an applied filter. Scaled
+          // by the applied blurMax (not desktop's) so re-enabling a mobile
+          // blur keeps the fog true to its own pane. Tied to the applied
+          // bucket, so it re-rasterises on the same crossings.
+          const fog = 1 - FOG_MAX * (px / blurMax);
           slot.style.filter =
             px > 0 ? `blur(${px}px) saturate(${fog.toFixed(3)})` : "none";
         }

@@ -28,16 +28,19 @@ const slotFilters = (page: Page) =>
     ),
   );
 
-/** wait (poll) until the deck's paint output is stable across 500ms —
-    tolerates slow settles under load instead of fixed sleeps */
+/** wait (poll) until the deck's paint output is stable across two
+    consecutive 600ms windows — the proximity-ease can micro-drift past the
+    first quiet span, so one equal check isn't enough */
 const awaitStableDeck = async (page: Page) => {
   await expect
     .poll(async () => {
       const a = JSON.stringify(await slotFilters(page));
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(600);
       const b = JSON.stringify(await slotFilters(page));
-      return a === b;
-    }, { timeout: 10_000, interval: 400 })
+      await page.waitForTimeout(600);
+      const c = JSON.stringify(await slotFilters(page));
+      return a === b && b === c;
+    }, { timeout: 14_000, intervals: [400] })
     .toBe(true);
 };
 
@@ -46,16 +49,21 @@ test.describe("Depth-of-field deck", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    // e = 0.03 → deck settles on Reel 0 (front slot crisp, neighbours below)
+    // e = 0.03 → deck settles on Reel 0 (front slot crisp, neighbours below).
+    // Asserted by polling (not one-shot): slow settles must still converge to
+    // the exact bucket + fog pairings quantised at rest depths (d=1 → 6px,
+    // fog 0.923; d≥2 → 14px, fog 0.82), never approximations of them.
     await anchorDeck(page, 0.03);
-    await awaitStableDeck(page);
-
-    const filters = await slotFilters(page);
-    // front card always filter:none; 6px then 14px falloff outward; fog
-    // (saturate < 1) rides inside the same quantised filter string
-    expect(filters.filter((f) => f === "none").length).toBeGreaterThanOrEqual(1);
-    expect(filters.filter((f) => f.startsWith("blur(6px)")).length).toBeGreaterThanOrEqual(1);
-    expect(filters.filter((f) => f.startsWith("blur(14px)")).length).toBeGreaterThanOrEqual(1);
+    await expect
+      .poll(async () => {
+        const filters = await slotFilters(page);
+        return [
+          filters.some((f) => f === "none"),
+          filters.some((f) => f === "blur(6px) saturate(0.923)"),
+          filters.some((f) => f === "blur(14px) saturate(0.82)"),
+        ].join(",");
+      }, { timeout: 14_000, intervals: [400] })
+      .toBe("true,true,true");
   });
 
   test("hysteresis: settled buckets never flip-flop", async ({ page }) => {
