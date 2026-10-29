@@ -11,19 +11,21 @@ copy; do not drift to synonyms.
 > and legacy code names (`ReelStrip`, `Reel Mark`, "Reel number") still use the
 > old sense; read them through that lens until their entries below are updated
 > by the Categories cutover. The linear film-roll strip is being replaced by
-> Categories + the curved carousel (Hero → Category chooser → carousel under it
-> → footer); entries that describe strip-only behaviour (Film-roll Scroll,
+> Categories + the curved carousel (Hero → carousel → footer; ADR-0008 unwired
+> the page-level Category chooser — picks happen from the footer rows);
+> entries that describe strip-only behaviour (Film-roll Scroll,
 > Intertitle, Layered Parallax trigger, Reel Mark zones) describe current code
 > and are retired with the strip at cutover.
 
 **Archive** — the entire site: the collection of Frames organised into
 **Categories**, each holding multiple **Reels** (videos). Browsing = pick a
-Category and move through its Reels in the curved carousel below the chooser.
+Category (footer rows, ADR-0008) and move through its Reels in the curved
+carousel. The archive opens on all Categories ("THE ARCHIVE").
 Not a "gallery", not a "feed" — it is handpicked, not algorithmic.
 
 **Category** — a curated thematic grouping of videos ("Design", "Animation",
-…). Picking one swaps in that group's Reels in the carousel section directly
-below the chooser; both stay visible on the one page (`/`). Not a "genre tag"
+…). Picking one swaps in that group's Reels in the carousel section above
+(picks originate from the footer rows, ADR-0008). Not a "genre tag"
 on a ticket and not a playlist — it is the top-level taxonomy of the Archive.
 
 **Curator** — Hardeep Dilip Shetty, the person whose personal taste the archive
@@ -57,7 +59,8 @@ thumbnail so the whole archive reads as one film stock. Lifts on hover to
 reveal original color. Do not apply per-video filters — one stock, everywhere.
 
 **Carousel** — the curved horizontal row of Tickets that a Category's Reels
-render in, below the Category chooser. It does not spin; it *moves
+render in, winding between the hero wedge and the footer. It does not spin;
+it *moves
 horizontally*, driven by scrolling (its section maps scroll progress to
 sideways travel). Scrolling works everywhere; on touch, where scroll capture
 fights the page, round Arrow buttons appear as secondary controls. Clicking a
@@ -99,17 +102,24 @@ then the intro slides out to reveal the hero. Click to skip.
 **Hero Presentation** — the curator portrait section that introduces the
 archive. Contains the wordmark "Drishyakosh", the curator's name, and the
 tagline. Scrolls straight into the archive strip (its squeeze-scrub is the
-`[data-hero-scrub]` beat the Reel Mark parks through).
+`[data-hero-scrub]` beat the Reel Mark parks through). Preceded by the
+**Prelude** (ADR-0007).
 
-**Sprockets** — the photographed film strip running down both viewport edges
-(desktop only), cut from `public/film-strip@2x.avif` (WebP fallback): leader
-perforations, the DRISHYAKOSH spine and a frame number. The rail reads
-`--rail-w` (48px at lg and up), anchored top and cropped by the viewport —
-never tiled, because the asset has cut ends. The perforations are punched
-through, so the page shows through them; the right rail is the same strip
-rotated 180° so its spine reads downwards rather than backwards. Static, not
-animated. Content that sits at the page's left/right edge reads `--rail-w`
-so it never hides under the film.
+**Prelude** — the pre-hero introduction panel (ADR-0007): corner chrome
+(site wordmark left, the page's one ARCHIVE shortcut right), a graded
+curator portrait dead-centre with collage chrome, the curator's
+introduction copy, and the **Threshold** beat. GSAP arrival beats on a
+single master timeline; per-element scroll drift hands it off to the hero.
+
+**Threshold** — the Prelude's last beat: "WELCOME TO", which completes into
+the red hero's DRISHYA/KOSH wordmark below the fold.
+
+**Sprockets** — *unwired (ADR-0008).* The photographed film strip that ran
+down both viewport edges (desktop only, cut from
+`public/film-strip@2x.avif`). Removed from the page: the rails, the
+`--rail-w` token, and the edge-inset math built on it are gone; content now
+runs edge-to-edge. The component file remains in the tree, ready to be
+re-wired.
 
 **Light Leak** — a subtle radial gradient that adds warmth to the hero and
 intro. Static, not drifting.
@@ -132,7 +142,8 @@ Visual treatment follows a professional film archive aesthetic:
   black than the page so paper floats above the charcoal.
 - **Typography**: Maghfirea for display (wordmarks, intertitles), NeueBrucke for body
 - **Transitions**: Subtle, purposeful — siena.film-inspired physics, but never distracting
-- **Texture**: Grain and sprockets are present but unobtrusive; they enhance, not compete
+- **Texture**: Grain (and formerly the sprocket rails, ADR-0008) is present but
+  unobtrusive; texture enhances, not competes
 
 See ADR-0004 for the visual direction and ADR-0005 for the current
 navigation architecture (decorative mark, linear strip, drum removal).

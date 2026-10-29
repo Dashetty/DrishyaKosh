@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SmoothScroll } from "@/lib/smooth-scroll";
 import { Grain } from "@/components/Grain";
-import { Sprockets } from "@/components/Sprockets";
 import { Cursor } from "@/components/Cursor";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
@@ -65,7 +64,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full overflow-x-clip">
         <SmoothScroll>
           <Grain />
-          <Sprockets />
           <Cursor />
           <LoadingScreen />
           <div id="page-content">{children}</div>

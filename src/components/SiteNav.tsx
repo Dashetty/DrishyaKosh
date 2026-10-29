@@ -5,13 +5,14 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Chrome zone SiteNav reports so the mark can dress for the film.
  */
-export type MarkZone = "landing" | "scrub" | "archive" | "footer";
+export type MarkZone = "landing" | "prelude" | "scrub" | "archive" | "footer";
 
 /**
  * SiteNav — fixed top-center reel mark, purely decorative (ADR-0004).
  *
  * The mark is NOT navigation and takes no input: it only wears the film —
- * ink over the red hero (landing), parked while the hero scrub runs
+ * bone over the ink Prelude (ADR-0007 — it is never red up there), ink
+ * over the red hero (landing), parked while the hero scrub runs
  * (ink-on-ink would look broken), bone over the ink archive, faded out
  * past "END OF REEL.". The archive scrolls itself; the footer's FLIP IT
  * OVER is the only return-to-top control on the page.
@@ -45,9 +46,20 @@ export function SiteNav() {
       const inArchive = mainTop < 72; // archive reaches the mark's row
       // parked while the hero scrub fills the viewport (ink-on-ink)
       const inHeroScrub = !!heroRect && heroRect.top < 24 && heroRect.bottom > vh;
+      // prelude: the hero's red edge is still below the mark's row, so the
+      // pixels behind the mark are ink — dress bone (ADR-0007)
+      const inPrelude = !!heroRect && heroRect.top > 0 && !inHeroScrub;
 
       setZone(
-        inFooter ? "footer" : inArchive ? "archive" : inHeroScrub ? "scrub" : "landing",
+        inFooter
+          ? "footer"
+          : inArchive
+            ? "archive"
+            : inHeroScrub
+              ? "scrub"
+              : inPrelude
+                ? "prelude"
+                : "landing",
       );
       // ink over the red hero → bone over the ink archive and footer;
       // recolors the mark via the CSS cascade (.over-archive .reel-mark)

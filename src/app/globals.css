@@ -239,6 +239,76 @@ body {
   );
 }
 
+/* ---------------------------------------------------------------------------
+   Prelude treatments (ADR-0007)
+--------------------------------------------------------------------------- */
+
+/* Curator portrait — the archive's warm film stock, static (one stock,
+   everywhere; the curator does not lift to full color like a ticket does,
+   but a slow hover zoom keeps the print alive) */
+.portrait-grade {
+  filter: grayscale(1) sepia(0.36) contrast(1.04) brightness(0.84) saturate(0.95);
+  transition: transform 0.8s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+.portrait-grade:hover {
+  transform: scale(1.015);
+}
+/* the duotone's radial vignette, so the graded photo melts into the ink */
+.portrait-grade::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    120% 90% at 50% 45%,
+    transparent 52%,
+    oklch(0.148 0.009 65 / 0.6) 88%,
+    oklch(0.148 0.009 65 / 0.88) 100%
+  );
+  pointer-events: none;
+}
+
+/* The reel ring sprite behind the portrait — same alpha-mask trick as
+   the reel mark so the token colour dresses it. */
+.prelude-d {
+  -webkit-mask-image: url("/Capital letter D@2x.avif");
+  mask-image: url("/Capital letter D@2x.avif");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  background-color: var(--color-amber);
+}
+/* slow idle spin on the ring — film threading while the page rests.
+   The mask span is centered with translate utilities, so rotation goes on
+   an inner pseudo wrapper (transform on the same element would drop the
+   centering translate). */
+.prelude-spin {
+  animation: prelude-spin 90s linear infinite;
+}
+@keyframes prelude-spin {
+  to { rotate: 360deg; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prelude-spin { animation: none; }
+}
+
+/* Scroll cue under WELCOME TO — polite, like the hero's dot */
+@keyframes prelude-cue {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.15); }
+}
+.prelude-cue {
+  animation: prelude-cue 2.4s ease-in-out 2.9s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .prelude-cue {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
 /* Ticket-stub notches on the WATCH button */
 .ticket-stub {
   mask-image: radial-gradient(circle 4px at 0 50%, transparent 98%, black),
@@ -252,46 +322,6 @@ body {
 /* Hairline rules */
 .hairline-t { border-top: 1px solid var(--color-hairline); }
 .hairline-b { border-bottom: 1px solid var(--color-hairline); }
-
-/* Sprocket rail — the photographed film strip down the viewport edges.
-   The rail is the strip's 2× native width, so the leader's branding and
-   frame number stay legible; it is anchored to the top of the strip and
-   cropped by the viewport, never tiled (the asset has cut ends). The
-   spine and lit edge face the page; the right rail is rotated 180° so its
-   spine text reads downwards rather than backwards.
-
-   --rail-w is 0 below lg because the rails are desktop-only; anything
-   that insets content to clear the film reads the same token. */
-:root {
-  --rail-w: 0px;
-}
-
-@media (min-width: 64rem) {
-  :root {
-    --rail-w: 48px;
-  }
-}
-
-.sprocket-rail {
-  width: var(--rail-w);
-  /* no backing colour: the sprocket holes are punched through the asset, so
-     the page (red hero, paper tickets, ink archive) shows through them */
-  background-image: image-set(
-    url("/film-strip@2x.avif") type("image/avif"),
-    url("/film-strip@2x.webp") type("image/webp")
-  );
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: right top;
-}
-
-/* The right rail is the same strip read from the other end: rotated so its
-   spine text reads downwards, and anchored to the asset's bottom so the
-   leader's branding lands at the same height as the left rail's. */
-.sprocket-rail--right {
-  transform: rotate(180deg);
-  background-position: right bottom;
-}
 
 /* ---------------------------------------------------------------------------
    Scroll & overlay behaviour
@@ -410,6 +440,10 @@ dialog::backdrop {
     transition: background-color 0.55s cubic-bezier(0.2, 0.6, 0.3, 1);
   }
   .over-archive .reel-mark {
+    background-color: var(--color-bone);
+  }
+  /* the Prelude's ink ground dresses the mark bone too (ADR-0007) */
+  .dk-mark[data-zone="prelude"] .reel-mark {
     background-color: var(--color-bone);
   }
 

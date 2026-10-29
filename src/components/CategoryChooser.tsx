@@ -30,7 +30,7 @@ export function CategoryChooser({
     <section
       id="section-chooser"
       aria-label="Choose a Category"
-      className="relative flex flex-col gap-12 px-6 pt-28 pb-16 md:px-10 md:pt-40 md:pb-24 lg:px-[calc(2.5rem+var(--rail-w))]"
+      className="relative flex flex-col gap-12 px-6 pt-28 pb-16 md:px-10 md:pt-40 md:pb-24"
     >
       <header className="flex flex-col gap-5">
         <div className="flex items-center gap-5">

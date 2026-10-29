@@ -10,7 +10,7 @@
 .deg-section {
   position: relative;
   /* the deck's internal z-indexes (400–460) must stay inside this section so
-     the fixed grain (z-40) and sprocket rails (z-30) still overlay it */
+     the fixed grain (z-40) still overlays it */
   isolation: isolate;
 
   /* The slot is laid out at the FRONT card's real size and side cards are
@@ -37,7 +37,7 @@
   position: absolute;
   top: 10.2%;
   /* 6% gutter, but never under the film rail */
-  left: max(6%, calc(var(--rail-w) + 1.5rem));
+  left: max(6%, 1.5rem);
   z-index: 40;
 }
 
@@ -170,7 +170,7 @@
   top: calc(49% + var(--deck-front-half-h, 0px) + 1.75rem);
   bottom: calc(6% + 2rem);
   /* 6% gutter, but never under the film rail */
-  right: max(6%, calc(var(--rail-w) + 1.5rem));
+  right: max(6%, 1.5rem);
   color: var(--color-bone-dim);
   z-index: 450;
 }
