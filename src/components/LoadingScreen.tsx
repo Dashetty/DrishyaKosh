@@ -140,12 +140,12 @@ export function LoadingScreen() {
         />
       </div>
 
-      <h1
+      <p
         data-wordmark
         className="font-display -me-[0.14em] text-[clamp(1.6rem,4.5vw,3.2rem)] uppercase tracking-[0.14em] text-bone opacity-0"
       >
         Drishyakosh
-      </h1>
+      </p>
 
       <p className="absolute bottom-20 -me-[0.4em] font-meta text-[0.55rem] tracking-[0.4em] text-smoke sm:bottom-8">
         CLICK TO THREAD THE PROJECTOR
@@ -154,7 +154,7 @@ export function LoadingScreen() {
       <button
         type="button"
         data-skip
-        className="absolute right-5 bottom-5 inline-flex min-h-11 items-center justify-center border border-smoke/40 px-4 py-3 font-meta text-[0.55rem] tracking-[0.3em] text-smoke uppercase transition-[color,border-color,scale] duration-200 hover:border-amber hover:text-amber active:scale-[0.96] sm:right-8 sm:bottom-8"
+        className="absolute right-[max(1.25rem,env(safe-area-inset-right))] bottom-[max(1.25rem,env(safe-area-inset-bottom))] inline-flex min-h-11 items-center justify-center border border-smoke/40 px-4 py-3 font-meta text-[0.55rem] tracking-[0.3em] text-smoke uppercase transition-[color,border-color,scale] duration-200 hover:border-amber hover:text-amber active:scale-[0.96] sm:right-[max(2rem,env(safe-area-inset-right))] sm:bottom-[max(2rem,env(safe-area-inset-bottom))]"
       >
         <span className="-me-[0.3em]">Skip intro</span>
       </button>

@@ -4,6 +4,11 @@ import type { Category } from "@/types";
 import { CATEGORY_SPINE } from "@/lib/reelTokens";
 import { useLenisInstance } from "@/lib/smooth-scroll";
 
+// Module scope: evaluated once per runtime (server render + client hydration
+// both re-evaluate the module fresh, then never again) — so the two agree
+// except across an in-flight New Year's minute.
+const YEAR = new Date().getFullYear();
+
 /**
  * Footer — FLIP IT OVER (the only return-to-top) + one direct line per
  * Category. Post-cutover (ADR-0006): the rows drive the carousel through the
@@ -30,11 +35,14 @@ export function Footer({
   };
 
   // one direct line per Category — a fast hand to the carousel pick (the
-  // same reset + glide as the chooser) when the page provides the handler
+  // same reset + glide as the chooser) when the page provides the handler.
+  // The href is the state's URL (?category=slug); modifier clicks and
+  // middle-click fall through to the browser so the link stays a link.
   const toCategory = (
     e: React.MouseEvent<HTMLAnchorElement>,
     category: Category,
   ) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
     if (onPickCategory) {
       onPickCategory(category);
@@ -70,7 +78,7 @@ export function Footer({
           {categories.map((category) => (
             <li key={category.slug}>
               <a
-                href="#section-carousel"
+                href={`?category=${category.slug}`}
                 onClick={(e) => toCategory(e, category)}
                 className="group flex min-h-11 items-center justify-between gap-4 px-2 py-3 font-meta text-[0.7rem] tracking-[0.35em] transition-colors duration-300 hover:bg-bone/5 active:bg-bone/10"
               >
@@ -87,7 +95,7 @@ export function Footer({
       </nav>
 
       <p className="font-body text-[0.7rem] text-smoke">
-        A personal archive curated by Hardeep Dilip Shetty · {new Date().getFullYear()}
+        A personal archive curated by Hardeep Dilip Shetty · {YEAR}
       </p>
     </footer>
   );

@@ -601,6 +601,11 @@ export function ReelCarousel({
                 onClick={() => onSlotClick(t, projectIndex, video)}
                 title={video.title}
                 aria-hidden={t === LEAD_SLOTS + activeIndex ? undefined : true}
+                // Pointer convenience on a div is deliberate: the front slot's
+                // action is duplicated by its focusable WATCH button, and
+                // background slots (aria-hidden, so nothing inside them may be
+                // focusable) are reached by the arrow keys — the sr-only hint
+                // below makes that the acknowledged keyboard path.
               >
                 <div
                   ref={(el) => {

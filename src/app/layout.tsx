@@ -23,15 +23,15 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
+      { url: "/favicons/favicon.ico", sizes: "any", type: "image/x-icon" },
       ...[16, 32, 48, 64, 128, 192, 512].map((size) => ({
-        url: `/favicon-${size}x${size}.png`,
+        url: `/favicons/favicon-${size}x${size}.png`,
         sizes: `${size}x${size}`,
         type: "image/png",
       })),
     ],
     apple: {
-      url: "/favicon-180x180.png",
+      url: "/favicons/favicon-180x180.png",
       sizes: "180x180",
       type: "image/png",
     },
@@ -60,6 +60,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           type="font/woff2"
           crossOrigin="anonymous"
         />
+        {/* Trailing content domains — ticket thumbnails (ytimg) and the
+            watch lightbox's embed (youtube-nocookie). */}
+        <link rel="preconnect" href="https://i.ytimg.com" />
+        <link rel="preconnect" href="https://www.youtube-nocookie.com" />
       </head>
       <body className="min-h-full overflow-x-clip">
         <SmoothScroll>

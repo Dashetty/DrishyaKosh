@@ -104,6 +104,24 @@ body {
   outline-offset: 3px;
 }
 
+/* ─── Touch ergonomics ─────────────────────────────────────────────────
+   Kill the 300ms double-tap-zoom delay on every interactive surface and
+   the Android blue tap flash in one place. Elements are NOT scrollable
+   themselves (the page and .deg-note own scrolling), so `manipulation`
+   never breaks a gesture — except the Curator's Note, re-allowed below. */
+a,
+button,
+summary,
+.deg-slot,
+[data-frame] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.deg-note,
+.deg-note * {
+  touch-action: pan-y;
+}
+
 /* Full-aperture cursor — native cursor hidden only once the custom one is live */
 @media (pointer: fine) {
   html[data-cursor="fine"],
@@ -424,12 +442,12 @@ dialog::backdrop {
     background-size: 8px 8px;
   }
 
-  /* ─── SiteNav reel-mark ────────────────────────────────────────────────
-     The avif is ink-black on transparency; worn as an alpha mask so any
+  /* ─── SiteNav treasure-mark ────────────────────────────────────────────
+     The png is ink on transparency; worn as an alpha mask so any
      token color can dress the mark. Fixed top-center from SiteNav. */
   .reel-mark {
-    -webkit-mask-image: url("/mark-reel.avif");
-    mask-image: url("/mark-reel.avif");
+    -webkit-mask-image: url("/mark-treasure.png");
+    mask-image: url("/mark-treasure.png");
     -webkit-mask-size: contain;
     mask-size: contain;
     -webkit-mask-repeat: no-repeat;
@@ -458,7 +476,7 @@ dialog::backdrop {
   .dk-mark {
     position: fixed;
     inset-inline: 0;
-    top: 0;
+    top: max(0px, env(safe-area-inset-top, 0px));
     z-index: 40;
     display: flex;
     justify-content: center;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Hero } from "@/components/Hero";
 import { Prelude } from "@/components/Prelude";
 import { SiteNav } from "@/components/SiteNav";
@@ -24,8 +24,17 @@ export default function Home() {
   const [active, setActive] = useState<Category | null>(null);
   const lenis = useLenisInstance();
 
+  // Deep link the active Category (?category=slug) — read on mount only,
+  // since this route is statically prerendered (no URL at HTML-build time).
+  useEffect(() => {
+    const slug = new URLSearchParams(window.location.search).get("category");
+    if (!slug) return;
+    setActive(categories.find((c) => c.slug === slug) ?? null);
+  }, []);
+
   const chooseCategory = (category: Category) => {
     setActive(category);
+    history.replaceState(null, "", `?category=${category.slug}`);
     // glide to the stage — the section's top never moves, so the numeric
     // target stays valid while the deck's own height re-keys
     const stage = document.getElementById("section-carousel");
