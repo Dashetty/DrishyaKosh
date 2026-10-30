@@ -38,11 +38,12 @@ Two font files also landed as part of the rebrand, ahead of their wiring.
    `globals.css`/`Prelude.tsx`. A replacement ring sprite in the new
    identity may follow as a separate decision — the Prelude's collage
    (tape strips, 8-point star) stands on its own meanwhile.
-5. **New faces adopted, not yet wired.** `public/fonts/GalgoVF.woff` +
-   `public/fonts/Unbounded-Variable.woff2` are the next display voices of
-   the rebrand and live in the tree ahead of wiring; they are **not** yet
-   referenced by any `@font-face` and must not be purged as orphans until
-   this ADR is superseded by the wiring commit.
+5. **New faces: adopted.** `Unbounded-Variable.woff2` is wired — registered
+   as `--font-unbounded` and font-face "Unbounded" (wght 200–900) and
+   preloaded in `layout.tsx`; the Hero wordmark wears it (ADR-0004's
+   `--font-display` face now covers the word lines instead). GalgoVF
+   is pre-staged for upcoming wiring. Until Galgo lands, treat these
+   files as claimed, not orphans — do not purge.
 
 ## Consequences
 
