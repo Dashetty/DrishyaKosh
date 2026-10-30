@@ -43,6 +43,11 @@ export const viewport: Viewport = {
   // metadata parsers expect a plain hex
   themeColor: "#0d0a07",
   colorScheme: "dark",
+  // cover viewports report real env(safe-area-inset-*) values — without it
+  // the fixed-chrome insets (the mark, the loader's skip button) read 0
+  // and do nothing. The page is edge-to-edge ink, so bleeding under the
+  // notch is harmless.
+  viewportFit: "cover",
 };
 
 /** Runs before first paint: flags the intro for this session only. */
