@@ -50,6 +50,18 @@
   font-style: normal;
   font-display: block;
 }
+/* Unbounded variable (wght 200–900, default 400) — the hero wordmark only.
+   vigilante.group registers this same family as its primary, and at 180px
+   weight 400 "DRISHYA" advances 961 units against the 1000-unit textLength
+   (a 1.04× metallic stretch, undetectable). block like Litterbox: a face
+   swap on the LCP glyph wall would read as a layout error. */
+@font-face {
+  font-family: "Unbounded";
+  src: url("/fonts/Unbounded-Variable.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: block;
+}
 
 @theme {
   --color-ink: oklch(0.148 0.009 65);
@@ -76,6 +88,7 @@
   --font-body: "NB International", "Helvetica Neue", Arial, sans-serif;
   --font-quote: "P22 Parrish Roman", Palatino, Georgia, serif;
   --font-hand: "Litterbox ICG", cursive;
+  --font-unbounded: "Unbounded", sans-serif;
 }
 
 html {
@@ -283,33 +296,6 @@ summary,
     oklch(0.148 0.009 65 / 0.88) 100%
   );
   pointer-events: none;
-}
-
-/* The reel ring sprite behind the portrait — same alpha-mask trick as
-   the reel mark so the token colour dresses it. */
-.prelude-d {
-  -webkit-mask-image: url("/Capital letter D@2x.avif");
-  mask-image: url("/Capital letter D@2x.avif");
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  background-color: var(--color-amber);
-}
-/* slow idle spin on the ring — film threading while the page rests.
-   The mask span is centered with translate utilities, so rotation goes on
-   an inner pseudo wrapper (transform on the same element would drop the
-   centering translate). */
-.prelude-spin {
-  animation: prelude-spin 90s linear infinite;
-}
-@keyframes prelude-spin {
-  to { rotate: 360deg; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .prelude-spin { animation: none; }
 }
 
 /* Scroll cue under WELCOME TO — polite, like the hero's dot */

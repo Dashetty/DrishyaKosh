@@ -8,16 +8,22 @@ import { useReducedMotion } from "@/lib/useReducedMotion";
 /**
  * Hero — rebuilt from vigilante.group's "LAWLESS CREATIVITY" block.
  *
- * Mechanics cloned 1:1 (see Inspo capture):
+ * Mechanics cloned 1:1 against the live site (MCP inspection, 1000×700):
  *  - full-bleed signal-red statement, min-height 200svh, overflow clipped
  *  - a sticky 100svh viewport inside holds two massive SVG word-lines
- *  - load: line one breathes at a tall (~2.4× natural, ≈36svh) poster
- *    proportion with a subtle idle pulse until the first scroll hands over
- *  - scroll drives the composition: line one compresses to ~78% of natural
- *    at the top while line two grows from 0 to fill the remainder — both stay
+ *    (their svg is byte-identical: viewBox "0 30 1000 140",
+ *    textLength 1000, lengthAdjust spacingAndGlyphs, fontSize 180px)
+ *  - load: line one is stretched to the full track — measured in the wild
+ *    as height:100vh inline (a viewport-tall taffy word) — with a subtle
+ *    idle pulse until the first scroll hands over
+ *  - scroll drives the composition: line one compresses to 32.8% of the
+ *    track while line two grows to 45.5% — the balanced two-line wall
+ *    their scrub passes through mid-pin (measured 295/410 px at 1440×900;
+ *    the leftover 21.7% spreads as the justify-between gap)
  *  - the Litterbox tagline fades over the final state, scribble draws itself
  *  - an angled red wedge hands the section off to the ink archive below
- *  - reduced motion: static accounting — both lines, tagline, no pin
+ *  - reduced motion: static accounting — both lines parked at the balanced
+ *    proportions, tagline, no pin
  */
 export function Hero() {
   const rootRef = useRef<HTMLElement>(null);
@@ -40,18 +46,17 @@ export function Hero() {
 
     gsap.registerPlugin(ScrollTrigger);
 
-    // natural (condensed) height of a word-line: padded width × 140/1000
-    const naturalHeight = () => first.offsetWidth * (140 / 1000);
-    // scroll squeeze: line one compresses from its landing stretch (~2.4×
-    // natural, mirrored in the inline aspect ratio below) to ~78% of
-    // natural; line two opens to fill the rest of the track — both stay
-    const squeezeFactor = 0.78;
-    const loadStretch = 2.4;
+    // height system: both word-lines are fractions of the sticky track
+    // (the lines column === the 100svh viewport). Line one lands at full
+    // track height (the taffy poster, vigilante's measured load state) and
+    // compresses to 32.8% of track; line two opens to 45.5% — the balanced
+    // wall. No "fill the remainder" math: the justify-between gap survives,
+    // exactly as vigilante's pin does.
+    const LINE1_END = 0.328;
+    const LINE2_END = 0.455;
     const track = second.parentElement;
-    const openHeight = () =>
-      track
-        ? track.offsetHeight - naturalHeight() * squeezeFactor
-        : naturalHeight();
+    const trackHeight = () => track?.offsetHeight ?? first.offsetHeight;
+    const lineEnd = (fraction: number) => () => trackHeight() * fraction;
     const scribbleLength = scribble.getTotalLength();
 
     const tl = gsap.timeline({
@@ -66,9 +71,9 @@ export function Hero() {
 
     tl.fromTo(
       first,
-      { height: () => naturalHeight() * loadStretch },
+      { height: () => trackHeight() },
       {
-        height: () => naturalHeight() * squeezeFactor,
+        height: lineEnd(LINE1_END),
         duration: 0.4,
         ease: "none",
       },
@@ -77,7 +82,7 @@ export function Hero() {
       .fromTo(
         second,
         { height: "0svh" },
-        { height: openHeight, duration: 0.55, ease: "none" },
+        { height: lineEnd(LINE2_END), duration: 0.55, ease: "none" },
         0.15
       )
       .fromTo(
@@ -159,8 +164,8 @@ export function Hero() {
       <div
         className={
           reduced
-            ? "min-h-[100svh] p-[1.8rem] md:p-[5.6rem]"
-            : "min-h-[calc(200svh+3.6rem)] p-[1.8rem] md:min-h-[calc(200svh+11.2rem)] md:p-[5.6rem]"
+            ? "min-h-[100svh] px-[1.8rem] md:px-[5.6rem]"
+            : "min-h-[calc(200svh+3.6rem)] px-[1.8rem] md:min-h-[calc(200svh+11.2rem)] md:px-[5.6rem]"
         }
       >
         <div className="sticky top-0 h-[100svh] w-full">
@@ -177,22 +182,27 @@ export function Hero() {
             <div
               ref={firstLineRef}
               className="w-full shrink-0 overflow-hidden"
-              // keep in sync with loadStretch above: 140 × 2.4 = 336
-              style={{ aspectRatio: "1000 / 336" }}
+              // load state = the taffy poster: full track height (in sync
+              // with the fromTo's starting value above)
+              style={{ height: reduced ? "33svh" : "100svh" }}
             >
               <svg
                 className="block h-full w-full select-none"
                 viewBox="0 30 1000 140"
                 preserveAspectRatio="none"
               >
+                {/* baseline y=168: Unbounded's measured ink ascent at 180px
+                    is 138 → cap-top flush with viewBox top 30; descent is
+                    3 units, sub-pixel at any stretch */}
                 <text
                   x="0"
-                  y="165"
+                  y="168"
                   textLength="1000"
                   lengthAdjust="spacingAndGlyphs"
                   style={{
                     fill: "var(--color-ink)",
-                    fontFamily: "var(--font-display)",
+                    fontFamily: "var(--font-unbounded)",
+                    fontWeight: 400,
                     fontSize: "180px",
                   }}
                 >
@@ -204,8 +214,7 @@ export function Hero() {
               ref={secondLineRef}
               className="w-full shrink-0 overflow-hidden"
               style={{
-                aspectRatio: "1000 / 140",
-                height: reduced ? undefined : "0svh",
+                height: reduced ? "45.5svh" : "0svh",
               }}
             >
               <svg
@@ -213,16 +222,15 @@ export function Hero() {
                 viewBox="0 30 1000 140"
                 preserveAspectRatio="none"
               >
-                {/* baseline y yields cap-top flush with viewBox top (y=30):
-                    measured ink ascent = 122 @180px → 30 + 122 = 152 */}
                 <text
                   x="0"
-                  y="152"
+                  y="168"
                   textLength="1000"
                   lengthAdjust="spacingAndGlyphs"
                   style={{
                     fill: "var(--color-ink)",
-                    fontFamily: "var(--font-display)",
+                    fontFamily: "var(--font-unbounded)",
+                    fontWeight: 400,
                     fontSize: "180px",
                   }}
                 >

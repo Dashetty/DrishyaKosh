@@ -65,6 +65,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           type="font/woff2"
           crossOrigin="anonymous"
         />
+        {/* Hero wordmark (LCP) — preloaded alongside the Prelude face so the
+            font-display: block wall lifts on the first paint of the LCP text */}
+        <link
+          rel="preload"
+          href="/fonts/Unbounded-Variable.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         {/* Trailing content domains — ticket thumbnails (ytimg) and the
             watch lightbox's embed (youtube-nocookie). */}
         <link rel="preconnect" href="https://i.ytimg.com" />

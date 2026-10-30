@@ -328,17 +328,6 @@ export function Prelude() {
                 className="relative"
                 style={{ opacity: fade }}
               >
-                {/* D-mark peeking behind the card's top-right (live-crop
-                    principle — the composition continues past the frame) */}
-                {/* the reel sprite mounted behind the portrait — concentric,
-                    slow idle rotation, like the film the portrait is threaded
-                    onto (asset = the reel ring sprite, reused as chrome) */}
-                <span
-                  aria-hidden
-                  data-prelude-node=""
-                  data-prelude-node-opacity="0.16"
-                  className="prelude-d prelude-spin absolute inset-0 z-0 m-auto block size-[min(24rem,36vw)] opacity-[0.16]"
-                />
                 {/* tape strips */}
                 <span
                   aria-hidden
