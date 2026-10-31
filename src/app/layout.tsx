@@ -58,14 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: introFlagScript }} />
-        <link
-          rel="preload"
-          href="/fonts/maghfirea.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-        {/* Hero wordmark (LCP) — preloaded alongside the Prelude face so the
+        {/* Display face (LCP wordmark + all display text) — preloaded so the
             font-display: block wall lifts on the first paint of the LCP text */}
         <link
           rel="preload"

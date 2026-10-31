@@ -140,7 +140,9 @@ Visual treatment follows a professional film archive aesthetic:
   saturated category spines (signal red · gold · teal · terracotta rust) at
   one lightness so they read equally vivid; ticket shadows are a cooler
   black than the page so paper floats above the charcoal.
-- **Typography**: Maghfirea for display (wordmarks, intertitles), NeueBrucke for body
+- **Typography**: Unbounded for display (wordmark, intertitles, titles —
+  Maghfirea retired, ADR-0010), NeueBrucke for metadata, NB International
+  for body, P22 Parrish for pull-quotes, Litterbox for handwriting
 - **Transitions**: Subtle, purposeful — siena.film-inspired physics, but never distracting
 - **Texture**: Grain (and formerly the sprocket rails, ADR-0008) is present but
   unobtrusive; texture enhances, not competes

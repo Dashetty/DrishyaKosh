@@ -201,7 +201,7 @@ export function Hero() {
                   lengthAdjust="spacingAndGlyphs"
                   style={{
                     fill: "var(--color-ink)",
-                    fontFamily: "var(--font-unbounded)",
+                    fontFamily: "var(--font-display)",
                     fontWeight: 400,
                     fontSize: "180px",
                   }}
@@ -229,7 +229,7 @@ export function Hero() {
                   lengthAdjust="spacingAndGlyphs"
                   style={{
                     fill: "var(--color-ink)",
-                    fontFamily: "var(--font-unbounded)",
+                    fontFamily: "var(--font-display)",
                     fontWeight: 400,
                     fontSize: "180px",
                   }}

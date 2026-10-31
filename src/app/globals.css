@@ -6,13 +6,6 @@
 --------------------------------------------------------------------------- */
 
 @font-face {
-  font-family: "Maghfirea";
-  src: url("/fonts/maghfirea.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
   font-family: "NeueBrucke";
   src: url("/fonts/neue-brucke.woff2") format("woff2");
   font-weight: 400;
@@ -50,11 +43,13 @@
   font-style: normal;
   font-display: block;
 }
-/* Unbounded variable (wght 200–900, default 400) — the hero wordmark only.
-   vigilante.group registers this same family as its primary, and at 180px
-   weight 400 "DRISHYA" advances 961 units against the 1000-unit textLength
-   (a 1.04× metallic stretch, undetectable). block like Litterbox: a face
-   swap on the LCP glyph wall would read as a layout error. */
+/* Unbounded variable (wght 200–900, default 400) — the display face: the
+   hero glyph wall AND every former Maghfirea role (kinetic titles, loader,
+   prelude chrome; Maghfirea retired, ADR-0010). vigilante.group registers
+   this same family as its primary, and at 180px weight 400 "DRISHYA"
+   advances 961 units against the 1000-unit textLength (a 1.04× metallic
+   stretch, undetectable). block like Litterbox: a face swap on the LCP
+   glyph wall would read as a layout error. */
 @font-face {
   font-family: "Unbounded";
   src: url("/fonts/Unbounded-Variable.woff2") format("woff2");
@@ -102,12 +97,11 @@
   --shadow-paper-compact: 0 30px 70px -22px oklch(0.06 0.015 240 / 0.9);
   --shadow-dialog: 0 40px 120px oklch(0.06 0.015 240 / 0.9);
 
-  --font-display: "Maghfirea", "Iowan Old Style", Georgia, serif;
+  --font-display: "Unbounded", sans-serif;
   --font-meta: "NeueBrucke", "Arial Narrow", "Helvetica Neue", sans-serif;
   --font-body: "NB International", "Helvetica Neue", Arial, sans-serif;
   --font-quote: "P22 Parrish Roman", Palatino, Georgia, serif;
   --font-hand: "Litterbox ICG", cursive;
-  --font-unbounded: "Unbounded", sans-serif;
 }
 
 html {

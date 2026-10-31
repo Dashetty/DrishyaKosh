@@ -28,15 +28,17 @@ pnpm build      # production build
 
 ## Fonts
 
-The four faces live in `public/fonts/` as woff2 (converted from the TTFs in
-`DrishyaFonts/`), loaded via `@font-face` with `font-display: swap`:
+The faces live in `public/fonts/` as woff2, loaded via `@font-face`
+(`swap` for text faces, `block` for the display and handwriting faces so
+their large glyph walls never flash):
 
 | Face | Role |
 |---|---|
-| Maghfirea | wordmark, reel titles, frame titles — never body text |
+| Unbounded (variable, wght 200–900) | wordmark + display: intertitles, kinetic titles, loader, prelude chrome — never body text (ADR-0010; Maghfirea retired) |
 | NeueBrucke | metadata: catalog numbers, credits rows, tags, buttons |
 | NB International | body: notes, nav, durations |
-| P22 Parrish Roman | curator's pull-quote (italic is synthesized — only the roman face exists) |
+| P22 Parrish Roman | curator's pull-quote (italic face registered against the same file) |
+| Litterbox ICG | handwritten tags |
 
 ## Data
 

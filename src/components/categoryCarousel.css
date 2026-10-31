@@ -2,7 +2,7 @@
    Category carousel (ADR-0006) — ported from `Inspo/aistudio-carousel/src/
    index.css` (.awards-* → .deg-*). Geometry is ported verbatim; the chrome is
    rethemed to the dark archive: token colors/fonts from globals.css
-   (near-black · bone · matte gold · Maghfirea/NeueBrucke instead of the
+   (near-black · bone · matte gold · Unbounded/NeueBrucke instead of the
    light Dokmeh stage). JS owns the per-slot transforms & kinetic blur
    (ReelCarousel.updateTransforms); this sheet owns stage geometry + chrome.
 --------------------------------------------------------------------------- */
