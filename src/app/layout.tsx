@@ -74,6 +74,34 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           type="font/woff2"
           crossOrigin="anonymous"
         />
+        {/* Loading screen faces + mask art — all tiny, and the overlay is the
+            first thing painted, so none of it may arrive late */}
+        <link
+          rel="preload"
+          href="/fonts/brahmos-bold-digits.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/brahmos-devanagari-medium-subset.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/loader/mark-chest.svg"
+          as="image"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/loader/mark-ring.svg"
+          as="image"
+          crossOrigin="anonymous"
+        />
         {/* Trailing content domains — ticket thumbnails (ytimg) and the
             watch lightbox's embed (youtube-nocookie). */}
         <link rel="preconnect" href="https://i.ytimg.com" />

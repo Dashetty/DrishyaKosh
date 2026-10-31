@@ -1,13 +1,37 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import gsap from "gsap";
+import { MARK_ASPECT, MARK_RAYS, MARK_VIEWBOX } from "./loader-mark-rays";
 
 const INTRO_FLAG = "dk-intro";
 
+// 0–9 then 0 again, so a column can roll 9 → 0 without a visual jump
+const DIGIT_STACK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+
+// Share of the bar each real loading signal owns (sums to 1)
+const WEIGHTS = {
+  fonts: 0.3,
+  assets: 0.15,
+  portrait: 0.25,
+  load: 0.3,
+} as const;
+type Signal = keyof typeof WEIGHTS;
+
+const smooth = (t: number) => t * t * (3 - 2 * t);
+
 /**
- * Projector intro — simple beam rise and reveal, runs once per session.
- * Pre-paint inline script in layout.tsx sets `html.intro-pending`.
+ * Loading screen (plans/008) — the treasure mark develops on ink while a
+ * frame counter climbs 000 → 100 from real loading signals (fonts, loader
+ * art, curator portrait, window load). At 100 the counter drops away and the
+ * chest flies to the Reel Mark's exact rect while the ink lifts, so the
+ * Prelude is already moving underneath.
+ *
+ * Adaptive: ≥1.2s brand beat (0.6s on save-data / 2g), finishes the moment
+ * the signals are in, hard-capped at 2.8s (1.6s lean). Runs once per
+ * session — the pre-paint script in layout.tsx sets `html.intro-pending`.
+ * First paint needs no JS: the mark, ring track and 000 are server markup,
+ * the develop wipe and ray flicker are CSS.
  */
 export function LoadingScreen() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -15,19 +39,28 @@ export function LoadingScreen() {
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    if (!document.documentElement.classList.contains("intro-pending")) return;
+    const html = document.documentElement;
+    if (!html.classList.contains("intro-pending")) return;
 
     const page = document.getElementById("page-content");
 
-    const finish = () => {
+    // Event + session flag fire once, as early as the exit allows — the
+    // Prelude listens for the event, not for the overlay's removal.
+    let signalled = false;
+    const signalDone = () => {
+      if (signalled) return;
+      signalled = true;
       try {
         sessionStorage.setItem(INTRO_FLAG, "1");
       } catch {
         /* private mode — intro just replays next visit */
       }
-      page?.removeAttribute("inert");
-      document.documentElement.classList.remove("intro-pending");
       window.dispatchEvent(new Event("dk:intro:done"));
+    };
+    const finish = () => {
+      signalDone();
+      page?.removeAttribute("inert");
+      html.classList.remove("intro-pending");
     };
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -39,67 +72,200 @@ export function LoadingScreen() {
     // of the tab order and the accessibility tree until the intro is done.
     page?.setAttribute("inert", "");
 
-    const beam = root.querySelector<HTMLElement>("[data-beam]");
-    const wordmark = root.querySelector<HTMLElement>("[data-wordmark]");
+    const q = <T extends HTMLElement>(sel: string) =>
+      root.querySelector<T>(sel);
+    const bg = q("[data-loader-bg]");
+    const markEl = q("[data-loader-mark]");
+    const ring = q("[data-loader-ring]");
+    const count = q("[data-loader-count]");
+    const caption = q("[data-loader-caption]");
+    const skipBtn = q<HTMLButtonElement>("[data-skip]");
+    const stacks = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-loader-stack]"),
+    );
 
-    const tl = gsap.timeline({ onComplete: finish });
-    tl.fromTo(
-      beam,
-      { scaleY: 0, opacity: 0 },
-      { scaleY: 1, opacity: 1, duration: 0.35, ease: "power2.out" }
-    )
-      .fromTo(
-        wordmark,
-        { opacity: 0, scale: 0.94 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 0.6,
-          ease: "power2.out",
-          transformOrigin: "50% 50%",
-        },
-        "<0.05"
-      )
-      .to(beam, { opacity: 0.85, duration: 0.15 })
-      .to(
-        root,
-        {
-          yPercent: -100,
-          duration: 0.5,
-          ease: "power4.out",
-        },
-        "+=0.1"
-      )
-      .to(beam, { opacity: 0, duration: 0.2 });
+    // ── adaptive budget ────────────────────────────────────────────────
+    const conn = (
+      navigator as Navigator & {
+        connection?: { saveData?: boolean; effectiveType?: string };
+      }
+    ).connection;
+    const lean = !!conn?.saveData || /(^|-)2g$/.test(conn?.effectiveType ?? "");
+    const minMs = lean ? 600 : 1200;
+    const capMs = lean ? 1600 : 2800;
+
+    // ── real progress signals ──────────────────────────────────────────
+    const done: Partial<Record<Signal, true>> = {};
+    let target = 0;
+    const signal = (key: Signal) => {
+      if (done[key]) return;
+      done[key] = true;
+      target += WEIGHTS[key];
+    };
+
+    void document.fonts.ready.then(() => signal("fonts"));
+
+    if (document.readyState === "complete") signal("load");
+    else window.addEventListener("load", () => signal("load"), { once: true });
+
+    // the loader art is CSS-masked, so probe the same URLs (cache-shared)
+    void Promise.all(
+      ["/loader/mark-chest.svg", "/loader/mark-ring.svg"].map(
+        (src) =>
+          new Promise<void>((resolve) => {
+            const img = new Image();
+            // same CORS mode as the CSS mask fetch, so the preload and the
+            // browser cache are shared instead of fetching twice
+            img.crossOrigin = "anonymous";
+            img.onload = img.onerror = () => resolve();
+            img.src = src;
+          }),
+      ),
+    ).then(() => signal("assets"));
+
+    // the Prelude portrait — whichever source <picture> picked
+    const portrait = document.querySelector<HTMLImageElement>(
+      'img[src*="curator-portrait"]',
+    );
+    if (portrait) {
+      portrait.decode().then(
+        () => signal("portrait"),
+        () => signal("portrait"),
+      );
+    } else {
+      signal("portrait");
+    }
+
+    // ── the counter ───────────────────────────────────────────────────
+    const place = (value: number) => {
+      // value 0–100, continuous. Units step like a frame counter (a rolling
+      // units column at ~80 digits/s is just a blur); tens slide across each
+      // 9 → 0 carry, and hundreds slide only across 99 → 100.
+      const [hundreds, tens, units] = stacks;
+      const u = Math.floor(value) % 10;
+      const t =
+        Math.floor(value / 10) +
+        smooth(Math.min(Math.max((value % 10) - 9, 0), 1));
+      const h = Math.min(Math.max(value - 99, 0), 1);
+      const set = (el: HTMLElement | undefined, pos: number) => {
+        if (el) el.style.transform = `translate3d(0, ${-pos * (100 / 11)}%, 0)`;
+      };
+      set(hundreds, h);
+      set(tens, t);
+      set(units, u);
+    };
+
+    const t0 = performance.now();
+    let last = t0;
+    let shown = 0; // 0–1, eased toward the goal
+    let lastInt = -1;
+    let exiting = false;
+    let tl: gsap.core.Timeline | undefined;
+
+    const onTick = () => {
+      const now = performance.now();
+      const dt = Math.min((now - last) / 1000, 0.1);
+      last = now;
+      const elapsed = now - t0;
+
+      // never ahead of the real signals, never behind the brand-beat ramp
+      const ramp = 1 - (1 - Math.min(elapsed / minMs, 1)) ** 2;
+      const goal = elapsed >= capMs ? 1 : Math.min(target, ramp);
+      shown += (goal - shown) * (1 - Math.exp(-dt * 9));
+      if (goal === 1 && shown > 0.995) shown = 1;
+
+      const value = shown * 100;
+      place(value);
+      const whole = Math.floor(value);
+      if (whole !== lastInt) {
+        lastInt = whole;
+        ring?.style.setProperty("--p", String(whole));
+      }
+
+      if (shown === 1 && !exiting) {
+        exiting = true;
+        gsap.ticker.remove(onTick);
+        // a beat on "100" so the number is read before it leaves
+        gsap.delayedCall(0.14, exit);
+      }
+    };
+
+    // ── exit: counter drops, chest flies home, ink lifts ──────────────
+    const exit = () => {
+      const home = document
+        .querySelector<HTMLElement>(".dk-mark .reel-mark")
+        ?.getBoundingClientRect();
+      const from = markEl?.getBoundingClientRect();
+
+      tl = gsap.timeline({ onComplete: finish });
+      tl.to(skipBtn, { opacity: 0, duration: 0.2, ease: "power1.out" }, 0)
+        .to(caption, { opacity: 0, duration: 0.25, ease: "power1.out" }, 0)
+        .to(count, { y: 48, opacity: 0, duration: 0.4, ease: "power3.in" }, 0);
+
+      if (markEl && from && home && home.width > 0 && from.width > 0) {
+        const flightAt = 0.12;
+        tl.to(
+          markEl,
+          {
+            x: home.left + home.width / 2 - (from.left + from.width / 2),
+            y: home.top + home.height / 2 - (from.top + from.height / 2),
+            scale: home.width / from.width,
+            duration: 0.95,
+            ease: "expo.inOut",
+          },
+          flightAt,
+        )
+          .to(
+            bg,
+            { opacity: 0, duration: 0.5, ease: "power1.inOut" },
+            flightAt + 0.35,
+          )
+          // the Prelude starts while the chest is still in the air
+          .call(signalDone, undefined, flightAt + 0.5);
+      } else {
+        // no Reel Mark to land on — settle the chest and lift the ink
+        tl.to(
+          markEl,
+          { scale: 0.92, opacity: 0, duration: 0.45, ease: "power2.in" },
+          0.1,
+        )
+          .to(bg, { opacity: 0, duration: 0.4, ease: "power1.inOut" }, 0.25)
+          .call(signalDone, undefined, 0.35);
+      }
+    };
+
+    gsap.ticker.add(onTick);
 
     // Guarded so click, the skip button, and Escape can't finish twice.
     const skip = () => {
-      if (!document.documentElement.classList.contains("intro-pending")) return;
-      tl.kill();
+      if (!html.classList.contains("intro-pending")) return;
+      gsap.ticker.remove(onTick);
+      gsap.killTweensOf(exit);
+      tl?.kill();
       finish();
     };
     // Clicking anywhere on the overlay skips — the skip button's click
     // bubbles up to this same handler.
     root.addEventListener("click", skip, { once: true });
 
-    // Keyboard escape hatch. Enter/Space work natively via the skip button,
-    // which takes focus so it is the first tab stop (the page behind the
-    // overlay is still focusable while it covers the viewport).
+    // Keyboard escape hatch. Escape works anywhere; the page behind is
+    // inert, so the skip button is the only tab stop (Enter/Space work
+    // natively). It isn't auto-focused: a programmatic focus ring on first
+    // paint reads as a glitch for pointer users.
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       // The listener lives for the session; never swallow Escape once the
       // intro is gone.
-      if (!document.documentElement.classList.contains("intro-pending")) return;
+      if (!html.classList.contains("intro-pending")) return;
       event.preventDefault();
       skip();
     };
     window.addEventListener("keydown", onKeyDown);
-    root
-      .querySelector<HTMLButtonElement>("[data-skip]")
-      ?.focus({ preventScroll: true });
 
     return () => {
-      tl.kill();
+      gsap.ticker.remove(onTick);
+      gsap.killTweensOf(exit);
+      tl?.kill();
       root.removeEventListener("click", skip);
       window.removeEventListener("keydown", onKeyDown);
       page?.removeAttribute("inert");
@@ -110,53 +276,54 @@ export function LoadingScreen() {
     <div
       ref={rootRef}
       data-intro-overlay
-      role="dialog"
-      aria-modal="true"
-      aria-label="Drishyakosh intro"
-      className="fixed inset-0 z-[100] items-center justify-center bg-ink"
+      role="status"
+      aria-live="polite"
+      className="fixed inset-0 z-100"
     >
-      {/* subtle sprocket dots at top and bottom for film reference */}
-      <div
-        aria-hidden
-        className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2"
-      >
-        <div className="w-1 h-1 rounded-full bg-amber/40" />
-        <div className="w-1 h-1 rounded-full bg-amber/40" />
-        <div className="w-1 h-1 rounded-full bg-amber/40" />
-      </div>
+      <span className="sr-only">Loading Drishyakosh</span>
 
-      {/* projector light beam — two layers so they never fight:
-          the outer div is the GSAP layer (geometry + opacity fades), the
-          inner line carries the CSS flicker. One element doing both meant
-          the keyframes overrode GSAP's entrance/exit opacity. */}
-      <div
-        data-beam
-        aria-hidden
-        className="absolute left-1/2 top-1/2 h-[62vh] w-px -translate-x-1/2 -translate-y-1/2"
-      >
+      <div data-loader-bg aria-hidden className="absolute inset-0 bg-ink" />
+
+      <div className="loader-stage" aria-hidden>
         <div
-          className="anim-beam h-full w-full bg-bone/90"
-          style={{ boxShadow: "0 0 24px 4px oklch(0.915 0.04 88 / 0.45)" }}
-        />
+          data-loader-mark
+          className="loader-mark"
+          style={{ "--mark-aspect": MARK_ASPECT } as CSSProperties}
+        >
+          <span className="loader-layer loader-ring-track" />
+          <span data-loader-ring className="loader-layer loader-ring-fill" />
+          <span className="loader-layer loader-chest" />
+          <svg
+            className="loader-rays"
+            viewBox={MARK_VIEWBOX}
+            fillRule="evenodd"
+            focusable="false"
+          >
+            {MARK_RAYS.map((d, i) => (
+              <path key={i} d={d} style={{ "--i": i } as CSSProperties} />
+            ))}
+          </svg>
+        </div>
+        <p data-loader-caption lang="hi" className="loader-caption">
+          दृश्यकोश
+        </p>
       </div>
 
-      <p
-        data-wordmark
-        className="font-display -me-[0.14em] text-[clamp(1.6rem,4.5vw,3.2rem)] uppercase tracking-[0.14em] text-bone opacity-0"
-      >
-        Drishyakosh
-      </p>
+      <div data-loader-count aria-hidden className="loader-count">
+        {[0, 1, 2].map((col) => (
+          <span key={col} className="loader-col">
+            <span data-loader-stack className="loader-stack">
+              {DIGIT_STACK.map((digit, i) => (
+                <span key={i}>{digit}</span>
+              ))}
+            </span>
+          </span>
+        ))}
+      </div>
 
-      <p className="absolute bottom-20 -me-[0.4em] font-meta text-[0.55rem] tracking-[0.4em] text-smoke sm:bottom-8">
-        CLICK TO THREAD THE PROJECTOR
-      </p>
-
-      <button
-        type="button"
-        data-skip
-        className="absolute right-[max(1.25rem,env(safe-area-inset-right))] bottom-[max(1.25rem,env(safe-area-inset-bottom))] inline-flex min-h-11 items-center justify-center border border-smoke/40 px-4 py-3 font-meta text-[0.55rem] tracking-[0.3em] text-smoke uppercase transition-[color,border-color,scale] duration-200 hover:border-amber hover:text-amber active:scale-[0.96] sm:right-[max(2rem,env(safe-area-inset-right))] sm:bottom-[max(2rem,env(safe-area-inset-bottom))]"
-      >
-        <span className="-me-[0.3em]">Skip intro</span>
+      <button type="button" data-skip className="loader-skip">
+        <span className="loader-skip-touch">Tap to skip</span>
+        <span className="loader-skip-pointer">Click or Esc to skip</span>
       </button>
     </div>
   );

@@ -63,6 +63,25 @@
   font-display: block;
 }
 
+/* Loading screen (plans/008): Brahmos Latin Bold subset to 0–9 for the frame
+   counter, Brahmos Devanagari Medium subset to the five glyphs of दृश्यकोश.
+   block + preloaded in layout.tsx: a fallback-face flash on a 200px numeral
+   would read as a glitch. */
+@font-face {
+  font-family: "Brahmos";
+  src: url("/fonts/brahmos-bold-digits.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: "Brahmos Devanagari";
+  src: url("/fonts/brahmos-devanagari-medium-subset.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+
 @theme {
   --color-ink: oklch(0.148 0.009 65);
   --color-ink-2: oklch(0.2 0.022 70);
@@ -190,16 +209,8 @@ summary,
   background: radial-gradient(circle at 20% 30%, oklch(0.775 0.13 78 / 0.14) 0%, transparent 60%);
 }
 
-/* Loader: beam shimmer */
-@keyframes beam {
-  0%, 100% { opacity: 0.75; }
-  45%      { opacity: 1; }
-  60%      { opacity: 0.85; }
-}
-
 .anim-grain   { animation: grain 0.9s steps(8, end) infinite; }
 .anim-flicker { animation: flicker 9s linear infinite; }
-.anim-beam    { animation: beam 1.6s steps(3, end) infinite; }
 
 /* Projector hold — the film stops while the lightbox is open */
 .projector-hold .anim-grain,
@@ -211,8 +222,7 @@ summary,
 @media (prefers-reduced-motion: reduce) {
   .anim-grain,
   .anim-flicker,
-  .anim-leak,
-  .anim-beam {
+  .anim-leak {
     animation: none !important;
   }
 }
@@ -339,16 +349,225 @@ html.intro-pending {
   display: none;
 }
 html.intro-pending [data-intro-overlay] {
-  display: flex;
+  display: block;
 }
 
-/* Beam pre-paint state — GSAP grows it from 0 inside the intro timeline.
-   Without this, the full-height line flashes between first paint and
-   hydration (the timeline only exists after React mounts). The translate
-   mirrors the element's centering utilities so GSAP inherits the same
-   anchor when it takes over. */
-html.intro-pending [data-intro-overlay] [data-beam] {
-  transform: translate(-50%, -50%) scaleY(0);
+/* The real Reel Mark waits under the overlay: the loader's chest flies to its
+   exact rect and the class drop swaps one for the other (plans/008). */
+html.intro-pending .dk-mark {
+  visibility: hidden;
+}
+
+/* ─── Loading screen (plans/008) ────────────────────────────────────────
+   Server-rendered, so the first paint is already the mark + 000 — nothing
+   waits on hydration. The develop wipe and the ray flicker are pure CSS for
+   the same reason; JS only drives the counter, the ring and the exit. */
+.loader-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.75rem, 3svh, 2rem);
+  padding-bottom: 6svh;
+  pointer-events: none;
+}
+.loader-mark {
+  position: relative;
+  /* width capped by viewport width, by height (via the mark's aspect) and
+     by an absolute max, so portrait phones, landscape phones and wide
+     desktops all land inside the viewport */
+  width: min(76vw, calc(50svh * var(--mark-aspect)), 520px);
+  aspect-ratio: var(--mark-aspect);
+}
+.loader-layer {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+.loader-ring-track,
+.loader-ring-fill {
+  -webkit-mask-image: url("/loader/mark-ring.svg");
+  mask-image: url("/loader/mark-ring.svg");
+  background-color: var(--color-bone);
+}
+.loader-ring-track {
+  opacity: 0.16;
+}
+/* ring ∩ clockwise sweep from 12 o'clock; --p (0–100) is set by the ticker */
+.loader-ring-fill {
+  -webkit-mask-image:
+    url("/loader/mark-ring.svg"),
+    conic-gradient(
+      from 0deg at 50% 50%,
+      #000 calc(var(--p, 0) * 1%),
+      transparent 0
+    );
+  mask-image:
+    url("/loader/mark-ring.svg"),
+    conic-gradient(
+      from 0deg at 50% 50%,
+      #000 calc(var(--p, 0) * 1%),
+      transparent 0
+    );
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.loader-chest {
+  -webkit-mask-image: url("/loader/mark-chest.svg");
+  mask-image: url("/loader/mark-chest.svg");
+  background-color: var(--color-bone);
+  animation: loader-develop 0.85s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+/* a print developing: revealed bottom → top */
+@keyframes loader-develop {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.loader-rays {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: var(--color-amber);
+}
+.loader-rays path {
+  animation: loader-ray 0.55s linear both;
+  animation-delay: calc(0.5s + var(--i) * 0.08s);
+}
+/* projector-lamp stutter, then it holds */
+@keyframes loader-ray {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 0.25;
+  }
+  60% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.loader-caption {
+  margin: 0;
+  font-family: var(--font-deva);
+  font-weight: 500;
+  /* no letter-spacing: it would split the श्य conjunct */
+  font-size: clamp(1.05rem, 2.4vw, 1.5rem);
+  line-height: 1.4;
+  color: var(--color-bone-dim);
+}
+@media (max-height: 480px) {
+  .loader-caption {
+    display: none;
+  }
+}
+
+/* Frame counter — each digit is a column of 0–9,0 slid with transform */
+.loader-count {
+  position: absolute;
+  left: max(1.25rem, env(safe-area-inset-left));
+  bottom: max(0.5rem, env(safe-area-inset-bottom));
+  display: flex;
+  font-family: var(--font-count);
+  font-weight: 700;
+  /* height-aware so a landscape phone's counter can't collide with the mark */
+  font-size: clamp(3rem, min(21vw, 24svh), 13rem);
+  line-height: 1.1;
+  color: var(--color-bone);
+  pointer-events: none;
+}
+.loader-col {
+  display: block;
+  width: 0.68em;
+  height: 1.1em;
+  overflow: hidden;
+  text-align: center;
+}
+.loader-stack {
+  display: block;
+  will-change: transform;
+}
+.loader-stack > span {
+  display: block;
+  height: 1.1em;
+}
+@media (min-width: 640px) {
+  .loader-count {
+    left: max(2rem, env(safe-area-inset-left));
+  }
+}
+
+.loader-skip {
+  position: absolute;
+  right: max(1.25rem, env(safe-area-inset-right));
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  min-height: 2.75rem;
+  padding: 0.5rem 0.25rem;
+  font-family: var(--font-meta);
+  font-size: 0.8125rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-bone-dim);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    scale 0.2s ease;
+}
+.loader-skip:hover {
+  color: var(--color-amber);
+}
+.loader-skip:active {
+  scale: 0.96;
+}
+.loader-skip:focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 2px;
+}
+.loader-skip-touch {
+  display: inline;
+}
+.loader-skip-pointer {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .loader-skip-touch {
+    display: none;
+  }
+  .loader-skip-pointer {
+    display: inline;
+  }
+}
+@media (min-width: 640px) {
+  .loader-skip {
+    right: max(2rem, env(safe-area-inset-right));
+    bottom: max(2rem, env(safe-area-inset-bottom));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loader-chest,
+  .loader-rays path {
+    animation: none;
+  }
 }
 
 /* Touch devices: native scroll-snap settling (Lenis stands down on touch) */
