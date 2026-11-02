@@ -95,7 +95,9 @@
 
   /* Paper shadows — a deeper, cooler black than the page (hue 240 vs the
      ink's 65), so tickets float above the warm charcoal. One place to tune. */
-  --shadow-paper: 0 44px 90px -26px oklch(0.06 0.015 240 / 0.92), 0 14px 38px -14px oklch(0.06 0.015 240 / 0.72);
+  --shadow-paper:
+    0 44px 90px -26px oklch(0.06 0.015 240 / 0.92),
+    0 14px 38px -14px oklch(0.06 0.015 240 / 0.72);
   --shadow-paper-compact: 0 30px 70px -22px oklch(0.06 0.015 240 / 0.9);
   --shadow-dialog: 0 40px 120px oklch(0.06 0.015 240 / 0.9);
 
@@ -104,6 +106,8 @@
   --font-body: "NB International", "Helvetica Neue", Arial, sans-serif;
   --font-quote: "P22 Parrish Roman", Palatino, Georgia, serif;
   --font-hand: "Litterbox ICG", cursive;
+  --font-count: "Brahmos", "Unbounded", sans-serif;
+  --font-deva: "Brahmos Devanagari", "Noto Sans Devanagari", sans-serif;
 }
 
 html {
@@ -118,6 +122,8 @@ body {
   font-family: var(--font-body);
   /* the faces above are the only weights/styles we ship — never fake a bold */
   font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   margin: 0;
   overflow-x: clip;
 }
@@ -168,31 +174,74 @@ summary,
 
 /* Fixed grain sheet — oversized, stepped translation = authentic flicker */
 @keyframes grain {
-  0%, 100% { transform: translate(0, 0); }
-  12.5%    { transform: translate(-3%, -6%); }
-  25%      { transform: translate(4%, 2%); }
-  37.5%    { transform: translate(-2%, 5%); }
-  50%      { transform: translate(6%, -3%); }
-  62.5%    { transform: translate(-5%, 3%); }
-  75%      { transform: translate(2%, 6%); }
-  87.5%    { transform: translate(5%, -5%); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  12.5% {
+    transform: translate(-3%, -6%);
+  }
+  25% {
+    transform: translate(4%, 2%);
+  }
+  37.5% {
+    transform: translate(-2%, 5%);
+  }
+  50% {
+    transform: translate(6%, -3%);
+  }
+  62.5% {
+    transform: translate(-5%, 3%);
+  }
+  75% {
+    transform: translate(2%, 6%);
+  }
+  87.5% {
+    transform: translate(5%, -5%);
+  }
 }
 
 /* Projector lamp breathes — slow, irregular, never smooth */
 @keyframes flicker {
-  0%   { opacity: 1; }
-  7%   { opacity: 0.992; }
-  9%   { opacity: 1; }
-  23%  { opacity: 0.985; }
-  24%  { opacity: 0.996; }
-  38%  { opacity: 1; }
-  53%  { opacity: 0.988; }
-  54%  { opacity: 1; }
-  71%  { opacity: 0.986; }
-  72%  { opacity: 0.995; }
-  88%  { opacity: 0.99; }
-  89%  { opacity: 1; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  7% {
+    opacity: 0.992;
+  }
+  9% {
+    opacity: 1;
+  }
+  23% {
+    opacity: 0.985;
+  }
+  24% {
+    opacity: 0.996;
+  }
+  38% {
+    opacity: 1;
+  }
+  53% {
+    opacity: 0.988;
+  }
+  54% {
+    opacity: 1;
+  }
+  71% {
+    opacity: 0.986;
+  }
+  72% {
+    opacity: 0.995;
+  }
+  88% {
+    opacity: 0.99;
+  }
+  89% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 /* Static light leak — warm ambient glow, no animation */
@@ -202,11 +251,19 @@ summary,
   border-radius: 50%;
   opacity: 0.2;
   filter: blur(60px);
-  background: radial-gradient(circle at 20% 30%, oklch(0.775 0.13 78 / 0.14) 0%, transparent 60%);
+  background: radial-gradient(
+    circle at 20% 30%,
+    oklch(0.775 0.13 78 / 0.14) 0%,
+    transparent 60%
+  );
 }
 
-.anim-grain   { animation: grain 0.9s steps(8, end) infinite; }
-.anim-flicker { animation: flicker 9s linear infinite; }
+.anim-grain {
+  animation: grain 0.9s steps(8, end) infinite;
+}
+.anim-flicker {
+  animation: flicker 9s linear infinite;
+}
 
 /* Projector hold — the film stops while the lightbox is open */
 .projector-hold .anim-grain,
@@ -230,7 +287,9 @@ summary,
 /* Duotone grade — one film stock across the whole archive; lifts on hover */
 .duotone img {
   filter: grayscale(1) sepia(0.32) contrast(1.05) brightness(0.8) saturate(0.92);
-  transition: filter 0.55s ease, transform 0.8s cubic-bezier(0.2, 0.6, 0.2, 1);
+  transition:
+    filter 0.55s ease,
+    transform 0.8s cubic-bezier(0.2, 0.6, 0.2, 1);
 }
 .duotone:hover img,
 .duotone:focus-within img {
@@ -244,7 +303,9 @@ summary,
    Same grade + hover lift as .duotone. */
 .duotone-paper img {
   filter: grayscale(1) sepia(0.32) contrast(1.05) brightness(0.8) saturate(0.92);
-  transition: filter 0.55s ease, transform 0.8s cubic-bezier(0.2, 0.6, 0.2, 1);
+  transition:
+    filter 0.55s ease,
+    transform 0.8s cubic-bezier(0.2, 0.6, 0.2, 1);
 }
 .duotone-paper:hover img,
 .duotone-paper:focus-within img {
@@ -284,7 +345,8 @@ summary,
    everywhere; the curator does not lift to full color like a ticket does,
    but a slow hover zoom keeps the print alive) */
 .portrait-grade {
-  filter: grayscale(1) sepia(0.36) contrast(1.04) brightness(0.84) saturate(0.95);
+  filter: grayscale(1) sepia(0.36) contrast(1.04) brightness(0.84)
+    saturate(0.95);
   transition: transform 0.8s cubic-bezier(0.2, 0.6, 0.2, 1);
 }
 .portrait-grade:hover {
@@ -304,34 +366,25 @@ summary,
   pointer-events: none;
 }
 
-/* Scroll cue under WELCOME TO — polite, like the hero's dot */
-@keyframes prelude-cue {
-  0%, 100% { opacity: 0.25; transform: scale(1); }
-  50%      { opacity: 1; transform: scale(1.15); }
-}
-.prelude-cue {
-  animation: prelude-cue 2.4s ease-in-out 2.9s infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .prelude-cue {
-    animation: none;
-    opacity: 0.6;
-  }
-}
-
 /* Ticket-stub notches on the WATCH button */
 .ticket-stub {
-  mask-image: radial-gradient(circle 4px at 0 50%, transparent 98%, black),
+  mask-image:
+    radial-gradient(circle 4px at 0 50%, transparent 98%, black),
     radial-gradient(circle 4px at 100% 50%, transparent 98%, black);
   mask-composite: intersect;
-  -webkit-mask-image: radial-gradient(circle 4px at 0 50%, transparent 98%, black),
+  -webkit-mask-image:
+    radial-gradient(circle 4px at 0 50%, transparent 98%, black),
     radial-gradient(circle 4px at 100% 50%, transparent 98%, black);
   -webkit-mask-composite: source-in;
 }
 
 /* Hairline rules */
-.hairline-t { border-top: 1px solid var(--color-hairline); }
-.hairline-b { border-bottom: 1px solid var(--color-hairline); }
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
+}
 
 /* ---------------------------------------------------------------------------
    Scroll & overlay behaviour
@@ -618,94 +671,118 @@ dialog::backdrop {
   }
 }
 
-  @layer utilities {
-    .animation-delay-400 {
-      animation-delay: 0.4s;
-    }
-    .animation-delay-800 {
-      animation-delay: 0.8s;
-    }
+@layer utilities {
+  .animation-delay-400 {
+    animation-delay: 0.4s;
   }
+  .animation-delay-800 {
+    animation-delay: 0.8s;
+  }
+}
 
-  /* Grain in the hero section — always present but very subtle */
-  .hero-grain {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.08;
-    z-index: 0;
-  }
-  .hero-grain::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M3 3h2v2H3z' fill='%23e8e0cf' fill-opacity='0.06'/%3E%3C/svg%3E");
-    background-size: 8px 8px;
-  }
+/* Grain in the hero section — always present but very subtle */
+.hero-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  z-index: 0;
+}
+.hero-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M3 3h2v2H3z' fill='%23e8e0cf' fill-opacity='0.06'/%3E%3C/svg%3E");
+  background-size: 8px 8px;
+}
 
-  /* ─── SiteNav treasure-mark ────────────────────────────────────────────
+/* Top chrome row: the fixed reel mark and the Prelude's corner chrome
+   (wordmark left, ARCHIVE right) hang from the same top offset, so their
+   centres share one horizontal guideline. */
+:root {
+  --nav-top: 1.25rem;
+}
+@media (min-width: 48rem) {
+  :root {
+    --nav-top: 2rem;
+  }
+}
+
+/* Hand-drawn gold squiggle under an inline phrase. A background (not a
+   pseudo-element) so it follows the text across line wraps. */
+.scribble-underline {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10' preserveAspectRatio='none'%3E%3Cpath d='M2 6C18 1 34 10 52 5S88 2 118 6' fill='none' stroke='%23e3ab4a' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  /* --ul (0 → 1) draws the line left to right; defaults to fully drawn */
+  background-size: calc(var(--ul, 1) * 100%) 0.32em;
+  padding-bottom: 0.2em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* ─── SiteNav treasure-mark ────────────────────────────────────────────
      The png is ink on transparency; worn as an alpha mask so any
      token color can dress the mark. Fixed top-center from SiteNav. */
-  .reel-mark {
-    -webkit-mask-image: url("/mark-treasure.png");
-    mask-image: url("/mark-treasure.png");
-    -webkit-mask-size: contain;
-    mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    mask-position: center;
-    background-color: var(--color-ink);
-    transition: background-color 0.55s cubic-bezier(0.2, 0.6, 0.3, 1);
-  }
-  .over-archive .reel-mark {
-    background-color: var(--color-bone);
-  }
-  /* the Prelude's ink ground dresses the mark bone too (ADR-0007) */
-  .dk-mark[data-zone="prelude"] .reel-mark {
-    background-color: var(--color-bone);
-  }
+.reel-mark {
+  -webkit-mask-image: url("/mark-treasure.png");
+  mask-image: url("/mark-treasure.png");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  background-color: var(--color-ink);
+  transition: background-color 0.55s cubic-bezier(0.2, 0.6, 0.3, 1);
+}
+.over-archive .reel-mark {
+  background-color: var(--color-bone);
+}
+/* the Prelude's ink ground dresses the mark bone too (ADR-0007) */
+.dk-mark[data-zone="prelude"] .reel-mark {
+  background-color: var(--color-bone);
+}
 
-
-  /* ─── Decorative reel mark (ADR-0004, revised) ──────────────────────────
+/* ─── Decorative reel mark (ADR-0004, revised) ──────────────────────────
      The mark is chrome, not navigation: it shows, threads to the film's
      color and fades in the dead zones, and never takes input. The archive
      scrolls itself; the footer's FLIP IT OVER is the only return-to-top.
      NOTE: positioning lives here (not in a utility class) — a `fixed`
      utility loses to this block's later rule, which left the nav in flow
      and pushed the hero down by the mark's height. */
-  .dk-mark {
-    position: fixed;
-    inset-inline: 0;
-    top: max(0px, env(safe-area-inset-top, 0px));
-    z-index: 40;
-    display: flex;
-    justify-content: center;
-    transform: translateY(var(--park-y, 0px));
-    opacity: 1;
-    transition:
-      opacity 450ms cubic-bezier(0.23, 1, 0.32, 1),
-      transform 450ms cubic-bezier(0.23, 1, 0.32, 1);
-    animation: dk-mark-in 700ms cubic-bezier(0.23, 1, 0.32, 1) 200ms backwards;
-    pointer-events: none;
-  }
-  /* parked in the dead zones: mid-hero scrub (ink-on-ink) and the footer */
+.dk-mark {
+  position: fixed;
+  inset-inline: 0;
+  top: calc(max(0px, env(safe-area-inset-top, 0px)) + var(--nav-top));
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  transform: translateY(var(--park-y, 0px));
+  opacity: 1;
+  transition:
+    opacity 450ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 450ms cubic-bezier(0.23, 1, 0.32, 1);
+  animation: dk-mark-in 700ms cubic-bezier(0.23, 1, 0.32, 1) 200ms backwards;
+  pointer-events: none;
+}
+/* parked in the dead zones: mid-hero scrub (ink-on-ink) and the footer */
+.dk-mark[data-zone="scrub"],
+.dk-mark[data-zone="footer"] {
+  --park-y: -8px;
+  opacity: 0;
+}
+@media (pointer: coarse) {
   .dk-mark[data-zone="scrub"],
   .dk-mark[data-zone="footer"] {
-    --park-y: -8px;
+    --park-y: 8px;
+  }
+}
+@keyframes dk-mark-in {
+  from {
     opacity: 0;
   }
-  @media (pointer: coarse) {
-    .dk-mark[data-zone="scrub"],
-    .dk-mark[data-zone="footer"] {
-      --park-y: 8px;
-    }
+  to {
+    opacity: 1;
   }
-  @keyframes dk-mark-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
+}

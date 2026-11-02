@@ -16,10 +16,10 @@ import { useReducedMotion } from "@/lib/useReducedMotion";
  *  - load: line one is stretched to the full track — measured in the wild
  *    as height:100vh inline (a viewport-tall taffy word) — with a subtle
  *    idle pulse until the first scroll hands over
- *  - scroll drives the composition: line one compresses to 32.8% of the
- *    track while line two grows to 45.5% — the balanced two-line wall
- *    their scrub passes through mid-pin (measured 295/410 px at 1440×900;
- *    the leftover 21.7% spreads as the justify-between gap)
+ *  - scroll drives the composition: line one parks at 40.5% of track
+ *    (+ top gutter), line two at 44.3% — the balanced two-line wall their
+ *    scrub rests on at the user's reference frame; the leftover spread is
+ *    the justify-between gap
  *  - the Litterbox tagline fades over the final state, scribble draws itself
  *  - an angled red wedge hands the section off to the ink archive below
  *  - reduced motion: static accounting — both lines parked at the balanced
@@ -46,17 +46,25 @@ export function Hero() {
 
     gsap.registerPlugin(ScrollTrigger);
 
-    // height system: both word-lines are fractions of the sticky track
-    // (the lines column === the 100svh viewport). Line one lands at full
-    // track height (the taffy poster, vigilante's measured load state) and
-    // compresses to 32.8% of track; line two opens to 45.5% — the balanced
-    // wall. No "fill the remainder" math: the justify-between gap survives,
-    // exactly as vigilante's pin does.
-    const LINE1_END = 0.328;
-    const LINE2_END = 0.455;
+    // height system: both word-lines are driven off the sticky track (the
+    // lines column === the 100svh viewport). Like vigilante, each line's svg
+    // carries a top gutter (padding-top: 1.8rem / md:5.6rem — their 6.2vw
+    // --gutter), so line heights are GLYPH fractions expressed as
+    // fraction-of-track + gutter in px:
+    //  - load: line one fills the track (their measured load state is an
+    //    inline height:100vh — a viewport-tall taffy word)
+    //  - rest: line one parks at 40.5% of track + gutter, line two at 44.3%
+    //    — measured off vigilante's balanced wall (420px LAWLESS above its
+    //    110px gutter, 460px CREATIVITY at a 1038px viewport); the leftover
+    //    spread is the justify-between gap. No "fill the remainder" math —
+    //    the gap survives, exactly as on the live site.
+    const LINE1_GLYPH = 0.405;
+    const LINE2_GLYPH = 0.443;
     const track = second.parentElement;
     const trackHeight = () => track?.offsetHeight ?? first.offsetHeight;
-    const lineEnd = (fraction: number) => () => trackHeight() * fraction;
+    const gutter = () => parseFloat(getComputedStyle(first).paddingTop) || 0;
+    const line1End = () => trackHeight() * LINE1_GLYPH + gutter();
+    const line2End = () => trackHeight() * LINE2_GLYPH;
     const scribbleLength = scribble.getTotalLength();
 
     const tl = gsap.timeline({
@@ -71,18 +79,16 @@ export function Hero() {
 
     tl.fromTo(
       first,
+      // the taffy poster: full track height (gutter inside), in sync with
+      // the inline 100svh below
       { height: () => trackHeight() },
-      {
-        height: lineEnd(LINE1_END),
-        duration: 0.4,
-        ease: "none",
-      },
+      { height: line1End, duration: 0.4, ease: "none" },
       0
     )
       .fromTo(
         second,
         { height: "0svh" },
-        { height: lineEnd(LINE2_END), duration: 0.55, ease: "none" },
+        { height: line2End, duration: 0.55, ease: "none" },
         0.15
       )
       .fromTo(
@@ -140,6 +146,17 @@ export function Hero() {
       breathe?.kill();
       tl.scrollTrigger?.kill();
       tl.kill();
+      // targeted teardown: strip exactly the inline styles GSAP wrote. The
+      // reduced-motion value can flip right after hydration
+      // (useSyncExternalStore resolves its client snapshot post-hydration),
+      // and without this the stale inline heights from the pre-flip pass
+      // would override the JSX-authored reduced state.
+      gsap.set([first, second], { clearProps: "height" });
+      gsap.set(tagline, { clearProps: "opacity" });
+      gsap.set(wedge, { clearProps: "clipPath" });
+      gsap.set(scribble, { clearProps: "strokeDashoffset" });
+      const firstSvg = first.querySelector("svg");
+      if (firstSvg) gsap.set(firstSvg, { clearProps: "transform" });
     };
   }, [reduced]);
 
@@ -181,10 +198,14 @@ export function Hero() {
           >
             <div
               ref={firstLineRef}
-              className="w-full shrink-0 overflow-hidden"
-              // load state = the taffy poster: full track height (in sync
-              // with the fromTo's starting value above)
-              style={{ height: reduced ? "33svh" : "100svh" }}
+              className={`w-full shrink-0 overflow-hidden pt-[1.8rem] md:pt-[5.6rem] ${
+                // poster = the taffy: full track height (gutter inside), in
+                // sync with the fromTo's starting value above; reduced parks
+                // at the same glyph fraction the scrub lands on
+                reduced
+                  ? "h-[calc(40.5svh+1.8rem)] md:h-[calc(40.5svh+5.6rem)]"
+                  : "h-[100svh]"
+              }`}
             >
               <svg
                 className="block h-full w-full select-none"
@@ -212,10 +233,10 @@ export function Hero() {
             </div>
             <div
               ref={secondLineRef}
-              className="w-full shrink-0 overflow-hidden"
-              style={{
-                height: reduced ? "45.5svh" : "0svh",
-              }}
+              className={`w-full shrink-0 overflow-hidden ${
+                reduced ? "h-[44.3svh]" : ""
+              }`}
+              style={reduced ? undefined : { height: "0svh" }}
             >
               <svg
                 className="block h-full w-full select-none"

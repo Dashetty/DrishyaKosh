@@ -43,9 +43,14 @@ export function SiteNav() {
         Number.POSITIVE_INFINITY;
 
       const inFooter = footerTop < vh * 0.85; // END OF REEL takes the screen
-      const inArchive = mainTop < 72; // archive reaches the mark's row
+      // archive reaches the mark's row (its bottom edge + a little air)
+      const markBottom =
+        navRef.current?.querySelector(".reel-mark")?.getBoundingClientRect()
+          .bottom ?? 64;
+      const inArchive = mainTop < markBottom + 8;
       // parked while the hero scrub fills the viewport (ink-on-ink)
-      const inHeroScrub = !!heroRect && heroRect.top < 24 && heroRect.bottom > vh;
+      const inHeroScrub =
+        !!heroRect && heroRect.top < 24 && heroRect.bottom > vh;
       // prelude: the hero's red edge is still below the mark's row, so the
       // pixels behind the mark are ink — dress bone (ADR-0007)
       const inPrelude = !!heroRect && heroRect.top > 0 && !inHeroScrub;
@@ -87,11 +92,7 @@ export function SiteNav() {
   }, []);
 
   return (
-    <div
-      ref={navRef}
-      className="dk-mark"
-      data-zone={zone}
-    >
+    <div ref={navRef} className="dk-mark" data-zone={zone}>
       <span className="reel-mark block size-11 md:size-16" aria-hidden="true" />
     </div>
   );
