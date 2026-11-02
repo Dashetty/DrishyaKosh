@@ -82,7 +82,9 @@
   --color-ink-2: oklch(0.2 0.022 70);
   --color-bone: oklch(0.915 0.04 88);
   --color-bone-dim: oklch(0.74 0.052 80);
-  --color-smoke: oklch(0.565 0.046 75);
+  /* 5.0:1 on ink (WCAG AA for the 0.55–0.75rem meta labels it dresses;
+     was oklch(0.565 …) = 4.29:1, dissolving on the near-black ground) */
+  --color-smoke: oklch(0.6 0.046 75);
   --color-amber: oklch(0.775 0.13 78);
   --color-signal: oklch(0.628 0.258 29.2);
   /* CINEMA / SHORT FILMS spines — teal and terracotta-leaning rust (ADR:

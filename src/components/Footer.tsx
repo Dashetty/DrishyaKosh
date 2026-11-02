@@ -94,7 +94,7 @@ export function Footer({
         </ul>
       </nav>
 
-      <p className="font-body text-[0.7rem] text-smoke">
+      <p className="font-body text-[0.75rem] text-smoke">
         A personal archive curated by Hardeep Dilip Shetty · {YEAR}
       </p>
     </footer>

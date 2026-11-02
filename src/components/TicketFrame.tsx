@@ -193,7 +193,7 @@ export function TicketFrame({
 
         {/* stub — right of the baked perforation */}
         <div className="tk-stub absolute bottom-0 left-[67.9%] right-0 top-0 flex flex-col gap-3 py-[3%] pl-[2%] pr-[1.4%]">
-          <p className="tk-archive font-meta text-[0.5rem] tracking-[0.35em] text-smoke">
+          <p className="tk-archive font-meta text-[0.55rem] tracking-[0.35em] text-ink/70">
             DRISHYAKOSH · ARCHIVE
           </p>
 
@@ -216,7 +216,7 @@ export function TicketFrame({
               ["RUNTIME", video.duration],
             ].map(([k, v]) => (
               <div key={k} className="min-w-0">
-                <dt className="tk-meta-dt font-meta text-[0.45rem] tracking-[0.3em] text-smoke">{k}</dt>
+                <dt className="tk-meta-dt font-meta text-[0.55rem] tracking-[0.3em] text-ink/70">{k}</dt>
                 <dd className="tk-meta-dd truncate font-meta text-[0.6rem] tracking-[0.2em] text-ink/85 uppercase tabular-nums">
                   {v}
                 </dd>
@@ -269,7 +269,7 @@ export function TicketFrame({
         </div>
 
         <div className="relative flex shrink-0 flex-col gap-2 border-bone/25 px-4 pb-4 pt-3 max-md:border-dashed max-md:border-t">
-          <p className="font-meta text-[0.5rem] tracking-[0.35em] text-smoke">
+          <p className="font-meta text-[0.55rem] tracking-[0.35em] text-smoke">
             DRISHYAKOSH · ARCHIVE
           </p>
 
@@ -290,7 +290,7 @@ export function TicketFrame({
               ["RUNTIME", video.duration],
             ].map(([k, v]) => (
               <div key={k} className="flex items-baseline justify-between gap-3">
-                <dt className="font-meta text-[0.5rem] tracking-[0.3em] text-smoke">{k}</dt>
+                <dt className="font-meta text-[0.55rem] tracking-[0.3em] text-smoke">{k}</dt>
                 <dd className="max-w-[60%] truncate font-meta text-[0.58rem] tracking-[0.25em] text-bone-dim uppercase tabular-nums">
                   {v}
                 </dd>
