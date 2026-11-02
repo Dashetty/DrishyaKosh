@@ -107,7 +107,7 @@ export function TicketFrame({
           if (isDeck) e.stopPropagation();
           onWatch(video);
         }}
-        className={`${stub} transition-[color,background-color,border-color,scale] duration-200 hover:border-amber hover:bg-amber hover:text-ink active:scale-[0.96]`}
+        className={`${stub} transition-[color,background-color,border-color,scale] duration-[180ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-amber hover:bg-amber hover:text-ink active:scale-[0.97]`}
         aria-label={label}
       >
         <span className="-me-[0.35em]">▶ WATCH</span>

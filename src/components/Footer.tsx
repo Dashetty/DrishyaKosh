@@ -63,7 +63,7 @@ export function Footer({
       <button
         type="button"
         onClick={flipItOver}
-        className="ticket-stub inline-flex min-h-11 items-center justify-center border border-bone/30 px-7 py-3 font-meta text-[0.65rem] tracking-[0.4em] text-bone transition-[color,background-color,border-color,scale] duration-200 hover:border-amber hover:bg-amber hover:text-ink active:scale-[0.96]"
+        className="ticket-stub inline-flex min-h-11 items-center justify-center border border-bone/30 px-7 py-3 font-meta text-[0.65rem] tracking-[0.4em] text-bone transition-[color,background-color,border-color,scale] duration-[180ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-amber hover:bg-amber hover:text-ink active:scale-[0.97]"
       >
         <span className="-me-[0.4em]">FLIP IT OVER →</span>
       </button>

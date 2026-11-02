@@ -527,13 +527,13 @@ html.intro-pending .dk-mark {
   cursor: pointer;
   transition:
     color 0.2s ease,
-    scale 0.2s ease;
+    scale 180ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 .loader-skip:hover {
   color: var(--color-amber);
 }
 .loader-skip:active {
-  scale: 0.96;
+  scale: 0.97;
 }
 .loader-skip:focus-visible {
   outline: 2px solid var(--color-amber);

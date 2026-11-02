@@ -1,91 +1,134 @@
-# 002 — Press feedback on all pressable elements
+# 002 — Press feedback harmonization across pressables
 
-- **Status**: TODO
-- **Commit**: 4740f20
+- **Status**: DONE (executed at working tree; see note below)
+- **Commit**: 4e3fdba *(revised at same commit; original premise stale)*
+>
+> **Execution note.** Executed on the working tree together with plan 009:
+> TicketFrame / WatchModal / Footer / `.loader-skip` are committed; the
+> ARCHIVE pill edit (`Prelude.tsx:274,283`) is applied but lives inside the
+> uncommitted Prelude/hero/words-stagger WIP, so it lands with that commit.
+> Verified live: `scale 0.18s cubic-bezier(0.23, 1, 0.32, 1)`; 13/13
+> playwright tests green at baseline AND after.
 - **Severity**: MEDIUM
-- **Category**: Physicality & origin (audit cat 3)
-- **Estimated scope**: 1 file, ~10 lines (globals.css only)
+- **Category**: Physicality & origin + Cohesion & tokens (audit cats 3, 7)
+- **Estimated scope**: 4 files, ~4 class edits + 1 CSS block
+
+> **Revision note (4e3fdba).** The original plan (commit `4740f20`) targeted
+> "no press feedback anywhere". Since then every pressable grew its own
+> `active:scale-[0.9x]` and `scale` in the transition list — the *introduction*
+> is done, per-component. What remains is **harmonization**: one depth, one
+> duration, one curve, everywhere.
 
 ## Problem
 
-None of the site's pressable elements give press feedback — the WATCH
-ticket-stub, FLIP IT OVER, CLOSE, and the YouTube link all fire with no
-physical response to the click itself. In a site whose whole conceit is
-tactile film hardware, buttons that don't react to the finger break the
-metaphor.
-
-Current code (all verified at 4740f20):
+Press feedback exists but disagrees with itself (all verified at `4e3fdba`):
 
 ```tsx
-/* src/components/Frame.tsx:104 — WATCH button */
-className="ticket-stub absolute bottom-6 right-5 z-10 border border-bone/30 bg-ink/60 px-5 py-2.5 font-meta text-[0.6rem] tracking-[0.35em] text-bone backdrop-blur-sm transition-colors duration-300 hover:border-amber hover:bg-amber hover:text-ink md:bottom-9 md:right-7"
+/* src/components/Prelude.tsx:274 — depth 0.97, 200ms, default ease */
+transition-[background-color,scale] duration-200 … active:scale-[0.97]
 
-/* src/components/Footer.tsx:17 — FLIP IT OVER */
-className="ticket-stub border border-bone/30 px-7 py-3 font-meta text-[0.65rem] tracking-[0.4em] text-bone transition-colors duration-300 hover:border-amber hover:bg-amber hover:text-ink"
+/* src/components/TicketFrame.tsx:110 — depth 0.96, 200ms, default ease */
+transition-[color,background-color,border-color,scale] duration-200 … active:scale-[0.96]
 
-/* src/components/WatchModal.tsx:37 — CLOSE, :47 — OPEN ON YOUTUBE ↗ */
-className="font-meta text-[0.6rem] tracking-[0.35em] text-bone-dim transition-colors hover:text-amber"
-className="font-meta text-[0.6rem] tracking-[0.3em] text-amber underline-offset-4 hover:underline"
+/* src/components/WatchModal.tsx:59 — depth 0.96, 200ms, default ease */
+transition-[color,scale] duration-200 … active:scale-[0.96]
+
+/* src/components/Footer.tsx:66 — depth 0.96, 200ms, default ease */
+transition-[color,background-color,border-color,scale] duration-200 … active:scale-[0.96]
 ```
 
-## Target
-
-A single global press rule: 160ms ease-out scale-down to 0.97 while pressed.
-The two ticket-stub buttons additionally stop scaling on pointer-release via
-the same transition (retargeting, not keyframes, so spam-clicking never
-restarts).
-
 ```css
-/* target — add to globals.css near the :focus-visible block */
-
-/* Press feedback — everything pressable dips slightly under the finger */
-button:active,
-a:active {
-  transform: scale(0.97);
-  transition: transform 160ms var(--ease-out);
+/* src/app/globals.css:586 — loader skip button: depth 0.96, 200ms, bare ease */
+.loader-skip:active {
+  scale: 0.96;
+}
+.loader-skip {
+  …
+  transition:
+    color 0.2s ease,
+    scale 0.2s ease;
 }
 ```
 
-Note the site's `:hover` color transitions already use `transition-colors
-duration-300` on the same elements; adding `transition: transform …` in the
-`:active` rule above applies only while active — acceptable, since the
-release is covered by the color transition already declared on the element.
-If any flicker of the color transition is observed during press, instead
-extend the element classes from `transition-colors duration-300` to
-`transition-[color,border-color,background-color,transform] duration-300`
-— decide by looking, not by default.
+Two divergences from the audit playbook (AUDIT.md cat 2 / cat 7):
+
+1. **All presses run 200ms on the default symmetric ease** — the budget for
+   press feedback is 100–160ms ease-out; the response should start on
+   mousedown and settle, not ease in.
+2. **One depth per purpose**: `0.97` vs `0.96` for the same gesture.
+   The audit target band is 0.95–0.98, but a site with one press gesture
+   should have one value.
+
+(Youtube link `WatchModal.tsx:87` has underline-only hover — an exit affordance
+to an external target; leave it out-of-scope.)
+
+## Target
+
+Every press: **scale 0.97, 180ms, `cubic-bezier(0.23, 1, 0.32, 1)`**
+(the house ease-out — same pair plan 009 lands on the ARCHIVE pill).
+
+- `Prelude.tsx:274` — depth already 0.97; becomes the reference once its
+  duration/ease land (plan 009). No change in THIS plan.
+- `TicketFrame.tsx:110` — `active:scale-[0.96]` → `active:scale-[0.97]`,
+  `duration-200` → `duration-[180ms]`, and
+  `ease-[cubic-bezier(0.23,1,0.32,1)]` appended to the transition utilities.
+- `WatchModal.tsx:59` — same three-part swap (depth 0.96 → 0.97, →
+  180ms, + house ease-out).
+- `Footer.tsx:66` — same three-part swap.
+- `globals.css` `.loader-skip` — `scale: 0.96` → `scale: 0.97`; in the
+  transition list `scale 0.2s ease` → `scale 180ms cubic-bezier(0.23, 1, 0.32, 1)`
+  (keep the `color 0.2s ease` line untouched).
 
 ## Repo conventions to follow
 
-- Interactive-styles rules live together in globals.css (`:focus-visible`,
-  `::selection`, aperture-cursor block). Add the press rule beside them.
-- After plan 003 lands, `var(--ease-out)` exists; until then use
-  `cubic-bezier(0.23, 1, 0.32, 1)`.
+- House ease-out appears verbatim in `src/app/globals.css:762` (`.dk-mark`)
+  and the dialog lifts — copy it byte-for-byte.
+- After plan 003 lands, express the curve as `var(--ease-out)` in the CSS
+  block and `ease-(--ease-out)` in Tailwind classes; until then inline the
+  literal bezier.
+- `LoadingScreen.tsx`'s skip button styles live in globals.css
+  (`.loader-skip`), not in the component — edit the CSS block, not the TSX.
 
 ## Steps
 
-1. Add the `button:active, a:active` block to globals.css after the
-   `::selection` rule.
-2. Feel-check each of the four surfaces (WATCH, FLIP IT OVER, CLOSE, YouTube
-   link); adjust per the note above only if a color/transform transition
-   conflict is visible.
+1. `src/components/TicketFrame.tsx:110` — replace
+   `transition-[color,background-color,border-color,scale] duration-200` with
+   `transition-[color,background-color,border-color,scale] duration-[180ms]
+   ease-[cubic-bezier(0.23,1,0.32,1)]`, and `active:scale-[0.96]` with
+   `active:scale-[0.97]`.
+2. `src/components/WatchModal.tsx:59` — replace
+   `transition-[color,scale] duration-200` with
+   `transition-[color,scale] duration-[180ms] ease-[cubic-bezier(0.23,1,0.32,1)]`,
+   and `active:scale-[0.96]` with `active:scale-[0.97]`.
+3. `src/components/Footer.tsx:66` — same swap as step 1 (identical strings).
+4. `src/app/globals.css` `.loader-skip` — in the base block's transition
+   list, change `scale 0.2s ease` to
+   `scale 180ms cubic-bezier(0.23, 1, 0.32, 1)`; in the `:active` block,
+   `scale: 0.96` → `scale: 0.97`.
+5. Confirm `Prelude.tsx:274` already matches plan 009's landed values
+   (`0.97` / `180ms` / house ease-out); if 009 has not run, note it and leave
+   the pill consistent with this plan's values in a follow-up of 009 only.
 
 ## Boundaries
 
-- Do NOT add per-component press classes; one global rule.
-- Do NOT change hover styles, easing, or durations of existing transitions.
-- Do NOT touch Cursor.tsx (the aperture ring already contracts on hover).
+- Do NOT add new per-component press targets (YouTube link, category rows,
+  CategoryChooser chips — their background-flash feedback is a different,
+  intentional register; rows/chips should not scale).
+- Do NOT change hover colors, reveals, or the loading-screen counter.
+- Do NOT touch `Cursor.tsx` (aperture ring contracts on press by design).
+- Depth/duration/curve ONLY — no markup, no extra properties.
+- If any excerpt no longer matches the code found, STOP and report.
 
 ## Verification
 
-- **Mechanical**: `pnpm lint` (0 errors), `pnpm build` clean.
-- **Feel check**: run `pnpm dev`, click-and-hold each button:
-  - WATCH dips to 97% while held, springs back on release.
-  - FLIP IT OVER dips while held — the long scroll-to-top starts only on
-    release.
-  - Rapid-click WATCH 10× — no animation restarts, each press responds
-    immediately (transition retargeting).
-  - Keyboard: Tab to WATCH, press Enter/Space — no visual conflict; the
-    lightbox open animation (plan 001) still plays.
-- **Done when**: every pressable element visibly responds to the press
-  itself, and nothing else changed.
+- **Mechanical**: `pnpm lint` (0 errors), `pnpm build` clean;
+  `grep -rn "scale-\[0.96\]" src/components` returns nothing.
+- **Feel check** (run `pnpm dev`):
+  - Press-and-hold each of WATCH (ticket), ✕ CLOSE (lightbox), FLIP IT OVER
+    (footer), and the loader's SKIP: all four dip to the same depth at the
+    same speed; none feels measurably snappier or mushier than another.
+  - Spam-click each 10× — immediate response every time, no restarts.
+  - Loader: trigger SKIP mid-load — same dip character as the site's other
+    buttons (it now uses the house ease-out).
+- **Done when**: every pressable dips to 0.97 at the same speed with the
+  same curve; nothing else changed.

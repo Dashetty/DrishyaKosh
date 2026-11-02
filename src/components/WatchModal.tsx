@@ -56,7 +56,7 @@ export function WatchModal({
             <button
               type="button"
               onClick={onClose}
-              className="relative inline-flex items-center font-meta text-[0.6rem] tracking-[0.35em] text-bone-dim transition-[color,scale] duration-200 before:absolute before:-inset-x-3 before:-inset-y-[15px] before:content-[''] hover:text-amber active:scale-[0.96]"
+              className="relative inline-flex items-center font-meta text-[0.6rem] tracking-[0.35em] text-bone-dim transition-[color,scale] duration-[180ms] ease-[cubic-bezier(0.23,1,0.32,1)] before:absolute before:-inset-x-3 before:-inset-y-[15px] before:content-[''] hover:text-amber active:scale-[0.97]"
               aria-label="Close"
             >
               <span className="-me-[0.35em]">✕ CLOSE</span>
