@@ -43,3 +43,10 @@ next-env.d.ts
 # local test artifacts
 /screenshots/
 /test-results/
+
+# local-only working assets & notes (editor config, font sources, design
+# traces, agent context files — none ship with the site)
+/.zed/
+/Contextforclaude/
+/design-src/
+/DrishyaFonts/
