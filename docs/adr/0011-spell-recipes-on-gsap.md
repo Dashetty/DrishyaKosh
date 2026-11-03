@@ -29,9 +29,11 @@ Two defects in how the Prelude used the idea:
   arrow's svg opacity and a normalised `pathLength=1` dash). Nothing is hidden
   by post-hydration JS.
 - **House additions over Spell:** `gate` (waits for `dk:intro:done` via
-  `lib/introGate.ts`), rich children (styled spans and `<br />` survive — Spell
-  drops every non-string child), clears inline styles when finished, reduced
-  motion renders plain text.
+  `lib/introGate.ts`), `startOnScroll` (holds the reveal until the user first
+  scrolls past a `window.scrollY` threshold in px; Prelude passes 6 for the
+  "Welcome to" line), rich children (styled spans and `<br />` survive —
+  Spell drops every non-string child), clears inline styles when finished,
+  reduced motion renders plain text.
 - Arrow order is now: "Hello", "there" → shaft draws → head draws → portrait.
 
 ## Consequences
