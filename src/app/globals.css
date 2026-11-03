@@ -82,9 +82,9 @@
   --color-ink-2: oklch(0.2 0.022 70);
   --color-bone: oklch(0.915 0.04 88);
   --color-bone-dim: oklch(0.74 0.052 80);
-  /* 5.0:1 on ink (WCAG AA for the 0.55–0.75rem meta labels it dresses;
-     was oklch(0.565 …) = 4.29:1, dissolving on the near-black ground) */
-  --color-smoke: oklch(0.6 0.046 75);
+  /* 6.07:1 on ink (WCAG AA for the 0.55–0.75rem meta labels it dresses;
+     APCA −46.5 — was oklch(0.6 …) = 5.0:1 / −39, dissolving on the near-black ground) */
+  --color-smoke: oklch(0.65 0.05 75);
   --color-amber: oklch(0.775 0.13 78);
   --color-signal: oklch(0.628 0.258 29.2);
   /* CINEMA / SHORT FILMS spines — teal and terracotta-leaning rust (ADR:
@@ -692,7 +692,7 @@ dialog::backdrop {
   content: "";
   position: absolute;
   inset: 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M3 3h2v2H3z' fill='%23e8e0cf' fill-opacity='0.06'/%3E%3C/svg%3E");
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M3 3h2v2H3z' fill='%23eee2c5' fill-opacity='0.06'/%3E%3C/svg%3E");
   background-size: 8px 8px;
 }
 
