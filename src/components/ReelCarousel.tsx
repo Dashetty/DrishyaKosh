@@ -129,7 +129,6 @@ export function ReelCarousel({
   /** last painted blur bucket per slot — skips redundant filter writes */
   const blurBuckets = useRef<number[]>([]);
   const titleRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const noteRefs = useRef<(HTMLDivElement | null)[]>([]);
   const fillRef = useRef<HTMLDivElement>(null);
 
   const dimsRef = useRef({
@@ -264,7 +263,6 @@ export function ReelCarousel({
         const isCurrent = t === rounded;
         const factor = isCurrent ? 1 - smoothstep(0.34, 0.5, dist) : 0;
         const titleEl = titleRefs.current[t];
-        const noteEl = noteRefs.current[t];
         const lift = reduced ? 0 : -26 * Math.max(-0.5, Math.min(0.5, delta));
 
         if (titleEl) {
@@ -272,13 +270,6 @@ export function ReelCarousel({
           titleEl.style.filter = reduced ? "none" : `blur(${((1 - factor) * 6).toFixed(2)}px)`;
           titleEl.style.transform = `translateY(${lift.toFixed(2)}px)`;
           titleEl.style.pointerEvents = factor > 0.5 ? "auto" : "none";
-        }
-
-        if (noteEl) {
-          noteEl.style.opacity = factor.toFixed(3);
-          noteEl.style.filter = reduced ? "none" : `blur(${((1 - factor) * 4).toFixed(2)}px)`;
-          noteEl.style.transform = `translateY(${(lift * 0.6).toFixed(2)}px)`;
-          noteEl.style.pointerEvents = factor > 0.5 ? "auto" : "none";
         }
       });
     },
@@ -511,9 +502,6 @@ export function ReelCarousel({
     const onKey = (ev: KeyboardEvent) => {
       // the Watch lightbox owns the keyboard while it is open
       if (document.querySelector("dialog[open]")) return;
-      // a focused Curator's Note is its own scroll region — let ↑/↓ move the
-      // note instead of stepping the deck
-      if ((ev.target as Element | null)?.closest?.(".deg-note")) return;
       const section = sectionRef.current;
       if (!section) return;
       const rect = section.getBoundingClientRect();
@@ -644,44 +632,6 @@ export function ReelCarousel({
             >
               {video.title}
             </span>
-          ))}
-        </div>
-
-        {/* Kinetic note — bottom right: the Curator's Note + logistics rows */}
-        <div className="deg-notes" dir="ltr">
-          {videos.map((video, t) => (
-            <div
-              key={video.id}
-              ref={(el) => {
-                noteRefs.current[t] = el;
-              }}
-              className="deg-note"
-              data-lenis-prevent
-              role="region"
-              aria-label={`Curator's note — ${video.title}`}
-              tabIndex={t === activeIndex ? 0 : -1}
-              aria-hidden={t === activeIndex ? undefined : true}
-            >
-              <span className="deg-note-byline">
-                {video.creator} · {video.year} · {video.genre}
-              </span>
-              <blockquote className="deg-note-blockquote">
-                <span aria-hidden className="deg-note-mark">
-                  &ldquo;
-                </span>
-                <p className="deg-note-quote">{video.curatorNote}</p>
-              </blockquote>
-              <dl className="deg-note-list">
-                <div>
-                  <dt>RUNTIME</dt>
-                  <dd className="tabular-nums">{video.duration}</dd>
-                </div>
-                <div>
-                  <dt>CATALOG</dt>
-                  <dd className="tabular-nums">{video.catalogNumber}</dd>
-                </div>
-              </dl>
-            </div>
           ))}
         </div>
 
