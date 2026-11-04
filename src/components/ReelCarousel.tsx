@@ -129,6 +129,8 @@ export function ReelCarousel({
   /** last painted blur bucket per slot — skips redundant filter writes */
   const blurBuckets = useRef<number[]>([]);
   const titleRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  /** last painted title filter per Reel — same trick for the kinetic title */
+  const titleFilters = useRef<string[]>([]);
   const fillRef = useRef<HTMLDivElement>(null);
 
   const dimsRef = useRef({
@@ -257,6 +259,12 @@ export function ReelCarousel({
       // visible, fading out over the last 0.16 of travel. Two titles never
       // overlap mid-scroll (the old crossfade ghosted them on top of each
       // other), and the swap happens while both are at zero.
+      //
+      // Blur is quantised to whole-pixel buckets and resolved to `none` at
+      // zero — a resting `blur(0px)` keeps the front title on its own filter
+      // surface and softens the glyphs (the same trap Prelude documents).
+      // Only a bucket crossing writes the filter, so the scrub re-rasterises
+      // text at most six times per Reel instead of every frame.
       videos.forEach((_, t) => {
         const delta = t - e;
         const dist = Math.abs(delta);
@@ -266,8 +274,14 @@ export function ReelCarousel({
         const lift = reduced ? 0 : -26 * Math.max(-0.5, Math.min(0.5, delta));
 
         if (titleEl) {
+          const blurPx = reduced || factor === 0 ? 0 : Math.round((1 - factor) * 6);
+          const filter = blurPx > 0 ? `blur(${blurPx}px)` : "none";
+
           titleEl.style.opacity = factor.toFixed(3);
-          titleEl.style.filter = reduced ? "none" : `blur(${((1 - factor) * 6).toFixed(2)}px)`;
+          if (filter !== titleFilters.current[t]) {
+            titleFilters.current[t] = filter;
+            titleEl.style.filter = filter;
+          }
           titleEl.style.transform = `translateY(${lift.toFixed(2)}px)`;
           titleEl.style.pointerEvents = factor > 0.5 ? "auto" : "none";
         }
@@ -493,9 +507,16 @@ export function ReelCarousel({
     // fresh slots start unfiltered; reset the bucket cache so the next paint
     // re-asserts each card's blur instead of trusting stale per-slot values
     blurBuckets.current = new Array(slotCount).fill(-1);
+    titleFilters.current = new Array(total).fill("");
+    // dropping slots on a smaller Category must also drop their detached
+    // nodes — paint() walks the whole array, not just the live slot count
+    slotRefs.current.length = slotCount;
+    glowRefs.current.length = slotCount;
+    shadeRefs.current.length = slotCount;
+    titleRefs.current.length = total;
     measure();
     compute();
-  }, [reelKey, slotCount, measure, compute]);
+  }, [reelKey, slotCount, total, measure, compute]);
 
   // keyboard stepping (stage must cover the viewport to take the keys)
   useEffect(() => {

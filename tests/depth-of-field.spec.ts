@@ -66,6 +66,36 @@ test.describe("Depth-of-field deck", () => {
       .toBe("true,true,true");
   });
 
+  test("kinetic title: front title rests crisp, no blur surface", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    await anchorDeck(page, 0.03);
+    await awaitStableDeck(page);
+
+    // The current title must resolve its filter to `none` at rest — a
+    // resting blur(0px) keeps it on a filter surface and softens the glyphs.
+    // Hidden titles must not carry a blur either: they're opacity 0, so
+    // keeping them filtered only buys invisible re-rasterisation.
+    await expect
+      .poll(async () => {
+        return page.evaluate(() => {
+          const titles = [...document.querySelectorAll<HTMLElement>(".deg-title")];
+          const filters = titles.map((t) => t.style.filter || "none");
+          return {
+            visible: titles.filter(
+              (t) => Number(getComputedStyle(t).opacity) > 0.9,
+            ).length,
+            blurred: filters.filter((f) => f.includes("blur(")).length,
+            visibleFilters: titles
+              .filter((t) => Number(getComputedStyle(t).opacity) > 0.9)
+              .map((t) => t.style.filter || "none"),
+          };
+        });
+      }, { timeout: 14_000, intervals: [400] })
+      .toEqual({ visible: 1, blurred: 0, visibleFilters: ["none"] });
+  });
+
   test("hysteresis: settled buckets never flip-flop", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");

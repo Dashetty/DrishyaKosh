@@ -79,7 +79,8 @@ export function Prelude() {
     // per-element drift as the panel scrolls away beneath the hero — same
     // span for every element, different distances = differential depth.
     // Distances are data-prelude-drift, in yPercent of the element itself.
-    gsap.utils.toArray<HTMLElement>("[data-prelude-drift]").forEach((el) => {
+    // Scoped to this section: selector strings outside a scope are global.
+    gsap.utils.toArray<HTMLElement>("[data-prelude-drift]", root).forEach((el) => {
       const dist = Number(el.dataset.preludeDrift ?? "-12");
       const tw = gsap.fromTo(
         el,
@@ -141,6 +142,7 @@ export function Prelude() {
 
     const firsts = root.querySelectorAll("[data-prelude-first]");
     const nodes = root.querySelectorAll("[data-prelude-node]");
+    const card = root.querySelector<HTMLElement>("[data-prelude-card]");
 
     // the words land first ("Hello", "there"), only then does the arrow draw
     // itself from the label into the card: shaft, then head
@@ -167,7 +169,7 @@ export function Prelude() {
         0.92,
       )
       .to(
-        "[data-prelude-card]",
+        card,
         {
           opacity: 1,
           y: 0,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { thumbnailUrl, type Category, type Video } from "@/types";
@@ -31,7 +31,7 @@ function useThumbFallback(youtubeId: string) {
   return { src, onError };
 }
 
-export function TicketFrame({
+function TicketFrameBase({
   video,
   variant = "strip",
   category,
@@ -302,3 +302,12 @@ export function TicketFrame({
     </article>
   );
 }
+
+/**
+ * The deck renders every Reel more than once (wrap-around slots), and the
+ * carousel re-renders on each Reel step (live-region state). Props are all
+ * referentially stable — `video` is a module object, `onWatch` is the
+ * setter — so memo skips the tickets that didn't change when only the
+ * front slot or its `tabbable` flag did.
+ */
+export const TicketFrame = memo(TicketFrameBase);

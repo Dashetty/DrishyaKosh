@@ -138,10 +138,16 @@ export function Hero() {
       passive: true,
     });
 
-    // word-line heights are svh/px-sensitive: refresh once real fonts land
-    document.fonts?.ready.then(() => ScrollTrigger.refresh());
+    // word-line heights are svh/px-sensitive: refresh once real fonts land.
+    // Guarded so a fonts promise that resolves after unmount can't refresh
+    // the triggers of a torn-down hero.
+    let alive = true;
+    document.fonts?.ready.then(() => {
+      if (alive) ScrollTrigger.refresh();
+    });
 
     return () => {
+      alive = false;
       window.removeEventListener("scroll", stopBreathe);
       breathe?.kill();
       tl.scrollTrigger?.kill();

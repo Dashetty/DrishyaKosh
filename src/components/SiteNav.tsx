@@ -19,6 +19,7 @@ export type MarkZone = "landing" | "prelude" | "scrub" | "archive" | "footer";
  */
 export function SiteNav() {
   const navRef = useRef<HTMLDivElement>(null);
+  const zoneRef = useRef<MarkZone>("landing");
   const [zone, setZone] = useState<MarkZone>("landing");
 
   useEffect(() => {
@@ -55,17 +56,20 @@ export function SiteNav() {
       // pixels behind the mark are ink — dress bone (ADR-0007)
       const inPrelude = !!heroRect && heroRect.top > 0 && !inHeroScrub;
 
-      setZone(
-        inFooter
-          ? "footer"
-          : inArchive
-            ? "archive"
-            : inHeroScrub
-              ? "scrub"
-              : inPrelude
-                ? "prelude"
-                : "landing",
-      );
+      const nextZone: MarkZone = inFooter
+        ? "footer"
+        : inArchive
+          ? "archive"
+          : inHeroScrub
+            ? "scrub"
+            : inPrelude
+              ? "prelude"
+              : "landing";
+      // rAF runs every scroll frame; only touch React when the zone flips
+      if (nextZone !== zoneRef.current) {
+        zoneRef.current = nextZone;
+        setZone(nextZone);
+      }
       // ink over the red hero → bone over the ink archive and footer;
       // recolors the mark via the CSS cascade (.over-archive .reel-mark)
       navRef.current?.classList.toggle("over-archive", inArchive);
