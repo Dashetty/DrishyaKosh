@@ -6,8 +6,9 @@ import { useLenisInstance } from "@/lib/smooth-scroll";
 
 /**
  * The Watch lightbox — a projector hold: grain and flicker pause behind the
- * open dialog, scroll locks, the iframe mounts only while open (paused
- * until the viewer presses play — no autoplaying audio).
+ * open dialog, scroll locks (Lenis when it exists, the document itself under
+ * reduced motion), the iframe mounts only while open (paused until the viewer
+ * presses play — no autoplaying audio).
  */
 export function WatchModal({
   video,
@@ -26,12 +27,18 @@ export function WatchModal({
 
     returnFocus.current = document.activeElement as HTMLElement | null;
     dlg.showModal();
-    document.documentElement.classList.add("projector-hold");
+    const root = document.documentElement;
+    root.classList.add("projector-hold");
+    // Lenis owns the scroll lock in the normal path; under reduced motion
+    // there is no instance to stop, so the document itself is locked.
+    const nativeLock = !lenis;
+    if (nativeLock) root.classList.add("projector-hold-native");
     lenis?.stop();
 
     return () => {
       if (dlg.open) dlg.close();
-      document.documentElement.classList.remove("projector-hold");
+      root.classList.remove("projector-hold");
+      root.classList.remove("projector-hold-native");
       lenis?.start();
       returnFocus.current?.focus?.();
     };

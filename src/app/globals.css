@@ -267,6 +267,15 @@ summary,
   animation-play-state: paused;
 }
 
+/* Reduced motion runs native scroll (SmoothScroll never builds Lenis), so
+   `lenis.stop()` can't hold the page: the lightbox locks the document itself.
+   `stable` keeps the scrollbar's space reserved while the bar is hidden, so
+   the stage doesn't shift sideways on open/close. */
+html.projector-hold-native {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-grain,
   .anim-flicker,
