@@ -533,7 +533,10 @@ html.intro-pending .dk-mark {
   }
 }
 
-/* Frame counter — each digit is a column of 0–9,0 slid with transform */
+/* Frame counter — each digit is a reel column of 0–9,0 slid with transform.
+   Counter-architected after the transitions.dev reel counter: columns are a
+   fixed tabular cell (the digits are masked and centred inside it), and the
+   window soft-fades at its edges the way the reel does. */
 .loader-count {
   position: absolute;
   left: max(1.25rem, env(safe-area-inset-left));
@@ -541,6 +544,10 @@ html.intro-pending .dk-mark {
   display: flex;
   font-family: var(--font-count);
   font-weight: 700;
+  /* tabular figures wherever the face has them (Brahmos' subset doesn't ship
+     tnum — the fixed cell + optical nudging below is what actually aligns) */
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
   /* height-aware so a landscape phone's counter can't collide with the mark */
   font-size: clamp(3rem, min(21vw, 24svh), 13rem);
   line-height: 1.1;
@@ -553,6 +560,23 @@ html.intro-pending .dk-mark {
   height: 1.1em;
   overflow: hidden;
   text-align: center;
+  /* reel window: the stack fades through the cell's edges instead of
+     hard-cropping. Fades stop inside the 0.167em–0.9em glyph band
+     (Brahmos digits are cap-height only), so a glyph never fades mid-ink */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 12%,
+    #000 88%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 12%,
+    #000 88%,
+    transparent 100%
+  );
 }
 .loader-stack {
   display: block;
@@ -562,6 +586,16 @@ html.intro-pending .dk-mark {
   display: block;
   height: 1.1em;
 }
+/* Brahmos ships proportional figures (advances 373–648/1000em, no tnum
+   feature), so text-align centering (which centres the advance box) makes
+   the reel wiggle horizontally as digits roll past. These shifts are the
+   measured ink-centre offsets from the advance centre, for the figures
+   that are ≥ 0.02em off — 0, 2, 6, 8, 9 are within a hair. */
+.loader-stack [data-d="1"] { translate: 0.064em 0; }
+.loader-stack [data-d="3"] { translate: 0.027em 0; }
+.loader-stack [data-d="4"] { translate: -0.026em 0; }
+.loader-stack [data-d="5"] { translate: 0.021em 0; }
+.loader-stack [data-d="7"] { translate: 0.032em 0; }
 @media (min-width: 640px) {
   .loader-count {
     left: max(2rem, env(safe-area-inset-left));

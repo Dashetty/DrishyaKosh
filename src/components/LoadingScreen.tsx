@@ -138,11 +138,12 @@ export function LoadingScreen() {
 
     // ── the counter ───────────────────────────────────────────────────
     const place = (value: number) => {
-      // value 0–100, continuous. Units step like a frame counter (a rolling
-      // units column at ~80 digits/s is just a blur); tens slide across each
-      // 9 → 0 carry, and hundreds slide only across 99 → 100.
+      // value 0–100, continuous — every column rolls the reel (transitions.dev
+      // feel): units slide *fractionally* between cells instead of snapping
+      // cell-per-cell (a snapped float at ~20 jumps/s reads as strobe), tens
+      // slide across each 9 → 0 carry, and hundreds slide only across 99 → 100.
       const [hundreds, tens, units] = stacks;
-      const u = Math.floor(value) % 10;
+      const u = value % 10;
       const t =
         Math.floor(value / 10) +
         smooth(Math.min(Math.max((value % 10) - 9, 0), 1));
@@ -314,7 +315,9 @@ export function LoadingScreen() {
           <span key={col} className="loader-col">
             <span data-loader-stack className="loader-stack">
               {DIGIT_STACK.map((digit, i) => (
-                <span key={i}>{digit}</span>
+                <span key={i} data-d={digit}>
+                  {digit}
+                </span>
               ))}
             </span>
           </span>
