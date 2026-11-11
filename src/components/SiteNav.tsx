@@ -11,10 +11,11 @@ export type MarkZone = "landing" | "prelude" | "scrub" | "archive" | "footer";
  * SiteNav — fixed top-center reel mark, purely decorative (ADR-0004).
  *
  * The mark is NOT navigation and takes no input: it only wears the film —
- * bone over the ink Prelude (ADR-0007 — it is never red up there), ink
- * over the red hero (landing), parked while the hero scrub runs
- * (ink-on-ink would look broken), bone over the ink archive, faded out
- * past "END OF REEL.". The archive scrolls itself; the footer's FLIP IT
+ * bone over the ink Prelude (ADR-0007 — it is never red up there), bone
+ * over the ink archive, faded out past "END OF REEL.". Over the Theater
+ * card it parks entirely: the mark is printed on the card itself as the
+ * crest between the marquee and the credits (ADR-0014, superseding
+ * ADR-0013's ride). The archive scrolls itself; the footer's FLIP IT
  * OVER is the only return-to-top control on the page.
  */
 export function SiteNav() {
@@ -49,7 +50,8 @@ export function SiteNav() {
         navRef.current?.querySelector(".reel-mark")?.getBoundingClientRect()
           .bottom ?? 64;
       const inArchive = mainTop < markBottom + 8;
-      // parked while the hero scrub fills the viewport (ink-on-ink)
+      // parked while the theater card fills the viewport — the mark lives
+      // on the card itself there (ADR-0014)
       const inHeroScrub =
         !!heroRect && heroRect.top < 24 && heroRect.bottom > vh;
       // prelude: the hero's red edge is still below the mark's row, so the

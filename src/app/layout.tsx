@@ -95,6 +95,29 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           as="image"
           crossOrigin="anonymous"
         />
+        {/* Theater card (ACT I): the curtain is the LCP image — it must not
+            arrive late, and both card faces are display: block faces */}
+        <link
+          rel="preload"
+          as="image"
+          href="/HeroSection/opt/curtain-desktop.avif"
+          imageSrcSet="/HeroSection/opt/curtain-mobile.avif 900w, /HeroSection/opt/curtain-desktop.avif 1672w"
+          imageSizes="100vw"
+        />
+        <link
+          rel="preload"
+          href="/fonts/broadway.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/caslon-antique.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         {/* Trailing content domains — ticket thumbnails (ytimg) and the
             watch lightbox's embed (youtube-nocookie). */}
         <link rel="preconnect" href="https://i.ytimg.com" />

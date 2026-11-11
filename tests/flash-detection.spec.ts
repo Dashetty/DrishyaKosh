@@ -1,38 +1,43 @@
 import { test, expect, type Page } from '@playwright/test';
 
 /**
- * Animation Flash Detection — against the pinned-scrub hero (rebuilt
- * c795d3b; the [data-hero-reveal].hero-* entrance markup is retired).
+ * Animation Flash Detection — against the Theater card (ACT I), which
+ * replaced the pinned taffy hero (specs retired alongside the cutover).
  *
- * "Flash" in the new design = the intro overlay lingering past the
- * session intro, the word-lines double-running (heights changing with
- * scroll untouched), or the tagline revealing before its timeline beat.
+ * "Flash" here = the intro overlay lingering past the session intro, the
+ * arrival timeline double-running (letters/type moving with scroll
+ * untouched), or the card's server-hidden states leaking before their
+ * beat. The theater keeps the old contract: hidden states live in the
+ * server markup, GSAP only ever animates to visible.
  */
 
-/** line wrappers: [0] DRISHYA, [1] KOSH — with their GSAP-driven heights */
-const lines = (page: Page) =>
+const THEATER = '[data-hero-scrub]';
+
+/** the marquee letters' settled transform + the type layer's opacity */
+const cardState = (page: Page) =>
   page.evaluate(() => {
-    const texts = document.querySelectorAll('[data-hero-scrub] svg text');
-    return Array.from(texts).map((t) => ({
-      text: t.textContent,
-      height: (t.parentElement as Element)?.getBoundingClientRect().height ?? -1,
+    const root = document.querySelector('[data-hero-scrub]') as HTMLElement;
+    const letters = Array.from(
+      root.querySelectorAll<HTMLElement>('[data-arch-letter]'),
+    ).map((l) => ({
+      opacity: parseFloat(getComputedStyle(l).opacity),
+      transform: getComputedStyle(l).transform,
     }));
+    const type = root.querySelector('[data-hero-scrub] .z-\\[38\\]') as HTMLElement | null;
+    const drape = root.querySelector('.theater-drape') as HTMLElement | null;
+    return {
+      letters,
+      typeOpacity: type ? parseFloat(getComputedStyle(type).opacity) : -1,
+      drapeClip: drape ? getComputedStyle(drape).clipPath : 'none',
+    };
   });
 
-const tagline = (page: Page) =>
-  page.evaluate(() => {
-    const el = document.querySelector(
-      '[data-hero-scrub] .pointer-events-none.inset-0',
-    ) as Element | null;
-    return el ? parseFloat(getComputedStyle(el).opacity) : -1;
-  });
-
-test.describe('Animation Flash Detection', () => {
-  test('Detect flash or double animation on initial load', async ({ page }) => {
+test.describe('Animation Flash Detection — Theater', () => {
+  test('no flash on initial load; the card arrives once', async ({ page }) => {
     await page.goto('http://localhost:3000');
     await page.waitForLoadState('networkidle');
-    // intro alone takes ~2.2s; settle well past it
-    await page.waitForTimeout(4000);
+    // the intro alone takes ~2.2s; settle well past the arrival timeline
+    await page.waitForTimeout(5500);
 
     const hasIntroPendingNow = await page.evaluate(() =>
       document.documentElement.classList.contains('intro-pending'),
@@ -42,49 +47,41 @@ test.describe('Animation Flash Detection', () => {
       .isVisible()
       .catch(() => false);
 
-    // Hero present and at its poster state (no scroll has occurred)
-    const heroLines = await lines(page);
-    console.log('Results after 4s wait:');
+    const state = await cardState(page);
+    console.log('Results after 5.5s wait:');
     console.log('  - intro-pending present:', hasIntroPendingNow);
     console.log('  - LoadingScreen visible:', loadingScreenVisible);
-    console.log('  - word-lines:', heroLines);
+    console.log('  - letters settled:', state.letters.every((l) => l.opacity === 1));
+    console.log('  - drape clip:', state.drapeClip);
 
     await page.screenshot({ path: 'screenshots/20-flash-test.png', fullPage: false });
-    console.log('Screenshot 20: Flash test result');
 
     expect(hasIntroPendingNow).toBe(false);
     expect(loadingScreenVisible).toBe(false);
-    // DRISHYA visible with real height; KOSH still closed (no scroll)
-    expect(heroLines[0]?.text).toBe('DRISHYA');
-    expect(heroLines[0]?.height ?? 0).toBeGreaterThan(100);
-    expect(heroLines[1]?.text).toBe('KOSH');
-    expect(heroLines[1]?.height ?? -1).toBeLessThan(4);
-    // tagline held until the scrub brings it (beat timeline ≥ 0.72)
-    expect(await tagline(page)).toBeLessThan(0.05);
+    // every marquee letter landed at full opacity — the arrival ran once
+    expect(state.letters.length).toBe(11);
+    state.letters.forEach((l) => expect(l.opacity).toBe(1));
+    // the drape is still down at scroll 0 (the act has not begun)
+    expect(state.drapeClip).not.toContain('100%');
   });
 
-  test('Check animation timestamps for double execution', async ({ page }) => {
+  test('no double execution while idle; the raise completes once', async ({ page }) => {
     await page.goto('http://localhost:3000');
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(5500);
 
-    const initial = await lines(page);
-    const initialTagline = await tagline(page);
-    console.log('GSAP/Animation info (initial):', { initial, initialTagline });
+    const initial = await cardState(page);
 
-    await page.screenshot({ path: 'screenshots/21-gsap-check.png', fullPage: false });
-    console.log('Screenshot 21: GSAP animation check');
-
-    // No scroll, no interaction: a double-run would show up as motion.
-    // DRISHYA's idle breathe (scaleY yoyo ≤ 3% until first scroll) is the
-    // only sanctioned drift — KOSH and the tagline must hold exactly.
+    // idle: the sanctioned drifts are CSS (breathe ≤ 0.8%, motes, halo) —
+    // the letters' own transforms must hold exactly
     await page.waitForTimeout(3000);
-    const rested = await lines(page);
-    console.log('Word-lines after idle:', rested);
-    expect(Math.abs(rested[0].height - initial[0].height)).toBeLessThan(initial[0].height * 0.05);
-    expect(Math.abs(rested[1].height - initial[1].height)).toBeLessThan(2);
-    expect(await tagline(page)).toBe(initialTagline);
+    const rested = await cardState(page);
+    rested.letters.forEach((l, i) => {
+      expect(l.transform).toBe(initial.letters[i].transform);
+      expect(l.opacity).toBe(1);
+    });
 
-    // scroll through the scrub range, then settle (scrub 0.6 catch-up)
+    // scroll through the pin's range, then settle (scrub 1.1 catch-up)
     await page.evaluate(() => {
       const root = document.querySelector('[data-hero-scrub]') as HTMLElement;
       const top = root.getBoundingClientRect().top + window.scrollY;
@@ -92,72 +89,16 @@ test.describe('Animation Flash Detection', () => {
     });
     await page.waitForTimeout(3000);
 
-    // Final scrub state: KOSH open, DRISHYA squeezed to ~78% of natural
-    const finalState = await lines(page);
-    console.log('Final element states:', finalState);
-    expect(finalState[1].height).toBeGreaterThan(
-      page.viewportSize()!.height * 0.2,
-    );
-    expect(finalState[0].height).toBeLessThan(initial[0].height);
-    // and the tagline is revealed exactly once (full opacity, stays)
-    expect(await tagline(page)).toBeGreaterThan(0.9);
+    // final scrub state: the drape fully risen (clip bottom inset 100%)
+    const finalState = await cardState(page);
+    console.log('Final drape clip:', finalState.drapeClip);
+    expect(finalState.drapeClip).toContain('100%');
+    expect(finalState.letters.every((l) => l.opacity === 1)).toBe(true);
   });
 
-  test('Full animation flow timing', async ({ page }) => {
-    // unchanged: phase-by-phase screenshot walk (no markup assertions)
-    const timings: Record<string, number> = {};
-
-    await page.goto('http://localhost:3000');
-    await page.waitForLoadState('networkidle');
-
-    timings.initial = Date.now();
-    await page.screenshot({ path: 'screenshots/22-timeline-0-initial.png', fullPage: false });
-
-    await page.waitForTimeout(300);
-    timings.beamStart = Date.now();
-    await page.screenshot({ path: 'screenshots/23-timeline-300-beam.png', fullPage: false });
-
-    await page.waitForTimeout(500);
-    timings.wordmark = Date.now();
-    await page.screenshot({ path: 'screenshots/24-timeline-800-wordmark.png', fullPage: false });
-
-    await page.waitForTimeout(700);
-    timings.introEnd = Date.now();
-    await page.screenshot({ path: 'screenshots/25-timeline-1500-intro.png', fullPage: false });
-
-    await page.waitForTimeout(500);
-    timings.heroStart = Date.now();
-    await page.screenshot({ path: 'screenshots/26-timeline-2000-hero.png', fullPage: false });
-
-    await page.waitForTimeout(500);
-    timings.nameAnimating = Date.now();
-    await page.screenshot({ path: 'screenshots/27-timeline-2500-name.png', fullPage: false });
-
-    await page.waitForTimeout(500);
-    timings.taglineAnimating = Date.now();
-    await page.screenshot({ path: 'screenshots/28-timeline-3000-tagline.png', fullPage: false });
-
-    await page.waitForTimeout(500);
-    timings.cueAnimating = Date.now();
-    await page.screenshot({ path: 'screenshots/29-timeline-3500-cue.png', fullPage: false });
-
-    await page.waitForTimeout(500);
-    timings.complete = Date.now();
-    await page.screenshot({ path: 'screenshots/30-final-complete.png', fullPage: false });
-
-    console.log('Timeline measurement (ms):');
-    Object.entries(timings).forEach(([key, value]) => {
-      console.log(`  ${key}: ${value - timings.initial}`);
-    });
-
-    const sessionState = await page.evaluate(() => ({
-      hasIntroPending: document.documentElement.classList.contains('intro-pending'),
-    }));
-    console.log('Session state:', sessionState);
-    expect(sessionState.hasIntroPending).toBe(false);
-  });
-
-  test('Refresh behavior check', async ({ page }) => {
+  test('refresh behavior check — no intro replay, card present from first paint', async ({
+    page,
+  }) => {
     // First visit — intro plays and marks the session
     await page.goto('http://localhost:3000');
     await page.waitForLoadState('networkidle');
@@ -177,16 +118,16 @@ test.describe('Animation Flash Detection', () => {
       overlayDisplay: getComputedStyle(
         document.querySelector('[data-intro-overlay]') as Element,
       ).display,
-      heroWordmarks: document.querySelectorAll('[data-hero-scrub] svg text').length,
+      archLetters: document.querySelectorAll('[data-hero-scrub] [data-arch-letter]')
+        .length,
     }));
     console.log('After refresh:', afterRefresh);
 
     await page.screenshot({ path: 'screenshots/31-refresh-check.png', fullPage: false });
-    console.log('Screenshot 31: Refresh behavior check');
 
-    // no intro replay (no flash), hero present from the first paint
+    // no intro replay (no flash), the marquee is in the markup from SSR
     expect(afterRefresh.introPending).toBe(false);
     expect(afterRefresh.overlayDisplay).toBe('none');
-    expect(afterRefresh.heroWordmarks).toBe(2);
+    expect(afterRefresh.archLetters).toBe(11);
   });
 });

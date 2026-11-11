@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Hero } from "@/components/Hero";
+import { Theater } from "@/components/Theater";
 import { Prelude } from "@/components/Prelude";
 import { SiteNav } from "@/components/SiteNav";
 import { ReelCarousel } from "@/components/ReelCarousel";
@@ -12,11 +12,11 @@ import type { Category } from "@/types";
 
 /**
  * The page composition (ADR-0007 above the hero; ADR-0006's chooser is
- * unwired — the hero runs straight into the archive stage, and the
+ * unwired — the theater card runs straight into the archive stage, and the
  * Footer's category rows remain the way to filter the deck).
- * Prelude → Hero → ReelCarousel stage → Footer.
- * The linear strip (ReelStrip/Intertitle) and CategoryChooser are unwired;
- * files remain.
+ * Prelude → Theater (ACT I) → ReelCarousel stage → Footer.
+ * The linear strip (ReelStrip/Intertitle), the taffy Hero and the
+ * CategoryChooser are unwired; files remain.
  * Selection state lives here so Footer rows can drive the same pick:
  * re-key the deck (index resets to 0), then glide to the stage top.
  */
@@ -53,7 +53,7 @@ export default function Home() {
     <>
       <SiteNav />
       <Prelude />
-      <Hero />
+      <Theater />
       <main>
         <ReelCarousel videos={shown} category={active} />
       </main>

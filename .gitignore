@@ -50,3 +50,6 @@ next-env.d.ts
 /Contextforclaude/
 /design-src/
 /DrishyaFonts/
+# theater card raw generations — the optimize-theater.mjs source; only the
+# delivery files in public/HeroSection/opt/ ship
+/public/HeroSection/*.png

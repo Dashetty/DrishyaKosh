@@ -36,6 +36,26 @@
   font-style: italic;
   font-display: swap;
 }
+/* Broadway Flat — the theater card's wordmark face (Vladimir Nikolic's
+   1001fonts revival, FFC license; converted + subset to basic latin).
+   block like the other display faces: the card IS a title card — a
+   fallback-face flash on the marquee would break the film grammar. */
+@font-face {
+  font-family: "Broadway";
+  src: url("/fonts/broadway.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+/* Caslon Antique — arch line, corp. credit and the cast/credits block.
+   swap is fine: it dresses secondary text that arrives after the mark. */
+@font-face {
+  font-family: "Caslon Antique";
+  src: url("/fonts/caslon-antique.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 @font-face {
   font-family: "Litterbox ICG";
   src: url("/fonts/litterbox-icg.woff2") format("woff2");
@@ -102,6 +122,9 @@
   --shadow-dialog: 0 40px 120px oklch(0.06 0.015 240 / 0.9);
 
   --font-display: "Unbounded", sans-serif;
+  /* Theater card faces (ACT I) */
+  --font-broadway: "Broadway", var(--font-display);
+  --font-caslon: "Caslon Antique", "Palatino Linotype", Georgia, serif;
   --font-meta: "NeueBrucke", "Arial Narrow", "Helvetica Neue", sans-serif;
   --font-body: "NB International", "Helvetica Neue", Arial, sans-serif;
   --font-quote: "P22 Parrish Roman", Palatino, Georgia, serif;
@@ -263,7 +286,10 @@ summary,
 /* Projector hold — the film stops while the lightbox is open */
 .projector-hold .anim-grain,
 .projector-hold .anim-flicker,
-.projector-hold .anim-leak {
+.projector-hold .anim-leak,
+.projector-hold .theater-mote,
+.projector-hold .theater-breathe,
+.projector-hold .theater-halo {
   animation-play-state: paused;
 }
 
@@ -279,7 +305,10 @@ html.projector-hold-native {
 @media (prefers-reduced-motion: reduce) {
   .anim-grain,
   .anim-flicker,
-  .anim-leak {
+  .anim-leak,
+  .theater-mote,
+  .theater-breathe,
+  .theater-halo {
     animation: none !important;
   }
 }
@@ -718,20 +747,22 @@ dialog::backdrop {
   }
 }
 
-/* Grain in the hero section — always present but very subtle */
-.hero-grain {
+/* Halftone in the hero — a screen-printed poster tooth on the signal wall
+   (ADR-0013): a fine ink dot matrix, static per ADR-0004's texture rules.
+   Sits at -z-10 inside the hero's isolate: above the wall's own red,
+   below the wedge and the wordmark composition. */
+.hero-halftone {
   position: absolute;
   inset: 0;
+  z-index: -10;
   pointer-events: none;
+  background-image: radial-gradient(
+    circle,
+    var(--color-ink) 1.05px,
+    transparent 1.65px
+  );
+  background-size: 10px 10px;
   opacity: 0.08;
-  z-index: 0;
-}
-.hero-grain::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M3 3h2v2H3z' fill='%23eee2c5' fill-opacity='0.06'/%3E%3C/svg%3E");
-  background-size: 8px 8px;
 }
 
 /* Top chrome row: the fixed reel mark and the Prelude's corner chrome
@@ -781,6 +812,10 @@ dialog::backdrop {
 .dk-mark[data-zone="prelude"] .reel-mark {
   background-color: var(--color-bone);
 }
+/* over the theater card the mark is absent from the chrome entirely —
+   it is printed on the card itself as the crest (ADR-0014 supersedes
+   ADR-0013's ride), so the zone parks like the footer. The ride's spin
+   engine is gone with it: no zone sets the mark turning any more. */
 
 /* ─── Decorative reel mark (ADR-0004, revised) ──────────────────────────
      The mark is chrome, not navigation: it shows, threads to the film's
@@ -804,15 +839,16 @@ dialog::backdrop {
   animation: dk-mark-in 700ms cubic-bezier(0.23, 1, 0.32, 1) 200ms backwards;
   pointer-events: none;
 }
-/* parked in the dead zones: mid-hero scrub (ink-on-ink) and the footer */
-.dk-mark[data-zone="scrub"],
-.dk-mark[data-zone="footer"] {
+/* parked in the dead zones: the footer, and the theater card — the mark is
+   printed on the card itself there (ADR-0014; supersedes ADR-0013's ride) */
+.dk-mark[data-zone="footer"],
+.dk-mark[data-zone="scrub"] {
   --park-y: -8px;
   opacity: 0;
 }
 @media (pointer: coarse) {
-  .dk-mark[data-zone="scrub"],
-  .dk-mark[data-zone="footer"] {
+  .dk-mark[data-zone="footer"],
+  .dk-mark[data-zone="scrub"] {
     --park-y: 8px;
   }
 }
@@ -822,5 +858,237 @@ dialog::backdrop {
   }
   to {
     opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   ACT I — the Theater card (the new hero)
+   Five layers filling the viewport edge to edge: curtain plane (with its
+   baked valance + bottom fringe) → swag drape → proscenium frame → gold
+   type → vignette. The whole drape (curtain + swag) is the GSAP clip
+   target for the curtain-raise handoff; frame + type fade on their own.
+--------------------------------------------------------------------------- */
+
+:root {
+  /* the arc the wordmark rides — radius in em (scales with the glyph size),
+     per-letter step, and the lift the apex needs above the layout row.
+     Desktop 11 letters × 5.6° = 56° spread → the word spans ~52vw at the
+     clamped display size; mobile flattens the curve to stay in frame. */
+  --theater-arc-r: 10em;
+  --theater-arc-step: 5.6deg;
+  --theater-arc-lift: 0.35em; /* the gap between the corp. line and apex */
+}
+@media (max-width: 47.9rem) {
+  :root {
+    --theater-arc-step: 4.75deg;
+    --theater-arc-lift: 0.3em;
+  }
+}
+
+/* marquee gold — brighter than the amber token: it must read as lit metal
+   against the velvet, not as the archive's UI accent */
+:root {
+  --color-marquee: oklch(0.84 0.128 88);
+  --color-marquee-dim: oklch(0.72 0.115 78);
+  --color-marquee-deep: oklch(0.38 0.07 60);
+}
+
+.theater-type {
+  color: var(--color-marquee);
+  text-shadow:
+    0 1px 0 oklch(0.55 0.1 78 / 0.9),
+    0 3px 2px oklch(0.32 0.06 55 / 0.85),
+    0 10px 26px oklch(0.09 0.01 50 / 0.55);
+}
+
+/* the arched wordmark: every letter sits in a ZERO-WIDTH slot parked at
+   the arc's centre point; the slot rotates around a pivot one radius
+   BELOW that point, and the rotation alone carries the letter to its arc
+   position (chord spacing must NOT contribute — chord + arc drift adds
+   up and flings the end letters off-screen). GSAP animates the inner
+   span only; the slot's static transform is never touched. */
+.theater-arch {
+  position: relative;
+  height: calc(var(--theater-arc-lift) + 2.5em);
+}
+.theater-arch-slot {
+  position: absolute;
+  left: 50%;
+  top: var(--theater-arc-lift);
+  width: 0;
+  height: 0;
+  transform: rotate(calc((var(--i) - var(--c, 5)) * var(--theater-arc-step)));
+  transform-origin: 0 var(--theater-arc-r); /* pivot = arc centre below */
+}
+.theater-arch-letter {
+  display: inline-block;
+  transform: translateX(-50%); /* centre the glyph on the slot point */
+}
+.theater-arch-letter > span {
+  display: inline-block;
+  /* background-IMAGE, not the shorthand: Lightning CSS hoists oklch()
+     shorthands into a trailing @supports block — and a shorthand resets
+     background-clip (border-box), unclipping the letters into gold boxes.
+     A longhand never resets its siblings. */
+  background-image: linear-gradient(
+    to bottom,
+    oklch(0.9 0.115 95) 0%,
+    var(--color-marquee) 42%,
+    oklch(0.7 0.12 76) 78%,
+    oklch(0.58 0.095 70) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 0 oklch(0.42 0.075 62 / 0.95))
+    drop-shadow(0 5px 3px oklch(0.26 0.05 52 / 0.8))
+    drop-shadow(0 14px 22px oklch(0.09 0.01 50 / 0.5));
+}
+
+/* the drape wrapper — the single clip-path rise target (compositor-safe;
+   no layout property is touched during the scrub) */
+.theater-drape {
+  will-change: clip-path;
+}
+.theater-drape img,
+.theater-swag img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* curtain breathe — the fabric is alive; imperceptible, top-anchored */
+.theater-breathe {
+  animation: theater-breathe 5.2s ease-in-out infinite;
+  transform-origin: 50% 0%;
+}
+@keyframes theater-breathe {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.008;
+  }
+}
+
+/* spotlight pool over the velvet — screen-blended warm light keyed off
+   --spot-x/--spot-y so the scrub can drift the lamp without repainting
+   anything but custom props */
+.theater-spot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    46% 40% at var(--spot-x, 50%) var(--spot-y, 30%),
+    oklch(0.88 0.12 85 / 0.5) 0%,
+    oklch(0.78 0.14 70 / 0.22) 34%,
+    transparent 68%
+  );
+}
+
+/* the lamp's own halo — the bloom above the swag line */
+.theater-halo {
+  position: absolute;
+  inset-inline: 0;
+  top: -8%;
+  height: 46%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  filter: blur(38px);
+  background: radial-gradient(
+    42% 100% at 50% 0%,
+    oklch(0.85 0.13 82 / 0.28) 0%,
+    transparent 70%
+  );
+  animation: theater-halo 7s ease-in-out infinite;
+}
+@keyframes theater-halo {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.82;
+  }
+}
+
+/* stage vignette — melts the photo's edges into the ink around it */
+.theater-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 100% at 50% 42%,
+    transparent 46%,
+    oklch(0.11 0.012 55 / 0.5) 82%,
+    oklch(0.09 0.012 55 / 0.85) 100%
+  );
+}
+
+/* dust motes drifting through the lamp — CSS-driven so projector-hold and
+   reduced-motion kill them from the same lists as the grain */
+.theater-mote {
+  position: absolute;
+  width: var(--s, 3px);
+  height: var(--s, 3px);
+  border-radius: 9999px;
+  background: oklch(0.88 0.1 90);
+  filter: blur(1px);
+  opacity: 0;
+  animation: theater-mote var(--d, 9s) linear var(--delay, 0s) infinite;
+  pointer-events: none;
+}
+@keyframes theater-mote {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--o, 0.55);
+  }
+  85% {
+    opacity: calc(var(--o, 0.55) * 0.4);
+  }
+  100% {
+    transform: translate(var(--dx, 8px), -110px) rotate(140deg);
+    opacity: 0;
+  }
+}
+
+/* the crest — the reel mark printed on the card (the floating SiteNav
+   mark parks through the theater; ADR-0014 moves it here). Same alpha-
+   mask technique as .reel-mark, but dressed in marquee gold — lit metal
+   on velvet — with a whisper of painted depth to match the type. */
+.theater-crest {
+  width: clamp(2.6rem, 4.2vw, 4.25rem);
+  aspect-ratio: 1;
+  -webkit-mask-image: url("/mark-treasure.png");
+  mask-image: url("/mark-treasure.png");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  background-color: var(--color-marquee);
+  filter: drop-shadow(0 1px 0 oklch(0.42 0.075 62 / 0.9))
+    drop-shadow(0 3px 2px oklch(0.09 0.01 50 / 0.5));
+}
+
+/* Caslon Antique micro-typography: the playbill tracking. Caslon Antique
+   runs tight by design — generous letterspacing is what makes it read
+   "antique playbill" instead of "wedding invite". Mobile eases the
+   tracking (and the row widths) so the playbill never wraps mid-line. */
+.theater-caslon {
+  font-family: var(--font-caslon);
+  text-transform: uppercase;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em; /* re-centre: tracking adds a trailing gap */
+}
+@media (max-width: 47.9rem) {
+  .theater-caslon {
+    letter-spacing: 0.2em;
+    text-indent: 0.2em;
   }
 }

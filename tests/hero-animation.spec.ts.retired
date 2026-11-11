@@ -1,13 +1,18 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Pinned-scrub hero (rebuilt c795d3b, "LAWLESS CREATIVITY" port):
+ * Threshold-pull hero (ADR-0012, on the c795d3b "LAWLESS CREATIVITY" port):
  * a sticky 100svh viewport inside a ≥200svh signal-red section holding two
- * SVG word-lines — DRISHYA (poster-stretched at load) and KOSH (opens from
- * 0svh as you scroll). The tagline (Litterbox hand type) fades over the
- * final state near the end of the scrub; a red wedge clips in at the
- * hand-off into the ink archive. The retired one-shot entrance
- * ([data-hero-reveal].hero-title/name/tagline/cue) no longer exists.
+ * SVG word-lines — DRISHYA and KOSH. The scrub starts one viewport early:
+ * while the red wall rises on natural scroll (top bottom → top top) the
+ * DRISHYA taffy is pulled from a flat entry ribbon up to the full poster
+ * height; the pinned phase then parks it at 40.5% of track while KOSH
+ * opens from 0svh. The tagline (Litterbox hand type) fades over the final
+ * state near the end of the scrub; a red wedge clips in at the hand-off
+ * into the ink archive. The Prelude's Threshold ("WELCOME TO") rides the
+ * seam through the entry and fades on the final approach. The retired
+ * one-shot entrance ([data-hero-reveal].hero-title/name/tagline/cue) no
+ * longer exists.
  *
  * Session intro: `html.intro-pending` pre-paint flag (layout.tsx script,
  * keyed by sessionStorage `dk-intro`); LoadingScreen clears it when done.
@@ -86,16 +91,49 @@ test('homepage animation behavior', async ({ page }) => {
 
 test('scroll behavior', async ({ page }) => {
   await page.goto('http://localhost:3000', { waitUntil: 'networkidle' });
-  await page.waitForTimeout(4000); // intro done; hero at its poster state
+  await page.waitForTimeout(4000); // intro done; prelude at rest
 
-  // At rest (scroll 0): DRISHYA stretched, KOSH not yet opened, tagline held
+  const vh = page.viewportSize()!.height;
+
+  // At rest (scroll 0): the hero is still below the fold — DRISHYA lies
+  // flat as the entry ribbon, KOSH closed, tagline held
   const atRest = await HERO_LINES(page);
   console.log('Word-lines at rest:', atRest);
   expect(atRest.count).toBe(2);
   expect(atRest.firstText).toBe('DRISHYA');
   expect(atRest.secondText).toBe('KOSH');
-  expect(atRest.firstHeight).toBeGreaterThan(100);
+  expect(atRest.firstHeight).toBeGreaterThan(vh * 0.05);
+  expect(atRest.firstHeight).toBeLessThan(vh * 0.3);
   expect(atRest.secondHeight).toBeLessThan(4);
+
+  // Mid-entry (hero top mid-viewport): the taffy has been pulled about
+  // half way up to the poster height — the threshold pull is live
+  const heroTop = await page.evaluate(() => {
+    const root = document.querySelector('[data-hero-scrub]') as HTMLElement;
+    return root.getBoundingClientRect().top + window.scrollY;
+  });
+  await page.evaluate((y) => window.scrollTo(0, y), heroTop - vh / 2);
+  await page.waitForTimeout(2500); // scrub 0.6 + Lenis catch-up settle
+  const midEntry = await HERO_LINES(page);
+  console.log('Word-lines mid-entry:', midEntry);
+  expect(midEntry.firstHeight).toBeGreaterThan(atRest.firstHeight);
+  expect(midEntry.firstHeight).toBeLessThan(vh * 0.85);
+  expect(midEntry.secondHeight).toBeLessThan(4); // KOSH waits for the pin
+
+  // Poster state (hero top at viewport top): DRISHYA fully stretched
+  await page.evaluate((y) => window.scrollTo(0, y), heroTop);
+  await page.waitForTimeout(2500);
+  const poster = await HERO_LINES(page);
+  console.log('Word-lines at poster:', poster);
+  expect(poster.firstHeight).toBeGreaterThan(vh * 0.85);
+  expect(poster.firstHeight).toBeGreaterThan(midEntry.firstHeight);
+
+  // The nav mark rides the scrub now (ADR-0013): visible, in the scrub
+  // zone, bone-dressed instead of parked
+  const mark = page.locator('.dk-mark');
+  await expect(mark).toHaveAttribute('data-zone', 'scrub');
+  const markOpacity = await mark.evaluate((el) => parseFloat(getComputedStyle(el).opacity));
+  expect(markOpacity).toBeGreaterThan(0.9);
 
   // Scroll to the very end of the hero's scrub range (section bottom at
   // viewport bottom → progress 1; scrub 0.6 catch-up needs a settle)
@@ -104,19 +142,22 @@ test('scroll behavior', async ({ page }) => {
     const top = root.getBoundingClientRect().top + window.scrollY;
     window.scrollTo(0, top + root.offsetHeight - window.innerHeight);
   });
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(2500);
 
   await page.screenshot({ path: '/tmp/test-scroll.png', fullPage: false });
   console.log('Screenshot: After scroll to hero end');
 
-  // Final scrub state: KOSH opened, DRISHYA squeezed, tagline revealed
+  // Final scrub state: KOSH opened, DRISHYA squeezed from the poster
+  // height, tagline revealed
   const atEnd = await HERO_LINES(page);
   console.log('Word-lines at hero end:', atEnd);
   expect(atEnd.secondHeight).toBeGreaterThan(page.viewportSize()!.height * 0.2);
-  expect(atEnd.firstHeight).toBeLessThan(atRest.firstHeight);
+  expect(atEnd.firstHeight).toBeLessThan(poster.firstHeight);
 
-  // The tagline overlay rides the end of the timeline
-  const tagline = page.locator(`${HERO} .pointer-events-none.inset-0`);
+  // The tagline overlay rides the end of the timeline (the hero's paper
+  // shader also wears .pointer-events-none.inset-0 but at -z-10, so .z-10
+  // pins the tagline alone)
+  const tagline = page.locator(`${HERO} .pointer-events-none.inset-0.z-10`);
   await expect(tagline).toContainText('Curated');
   const taglineOpacity = await tagline.evaluate(
     (el) => parseFloat(getComputedStyle(el).opacity),

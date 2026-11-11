@@ -15,7 +15,9 @@ copy; do not drift to synonyms.
 > the page-level Category chooser — picks happen from the footer rows);
 > entries that describe strip-only behaviour (Film-roll Scroll,
 > Intertitle, Layered Parallax trigger, Reel Mark zones) describe current code
-> and are retired with the strip at cutover.
+> and are retired with the strip at cutover. Separately, the red taffy hero
+> (ADR-0012/0013) is retired at ADR-0014 — "Hero" in pre-2026-11 docs means
+> the **Theater Card**'s predecessor.
 
 **Archive** — the entire site: the collection of Frames organised into
 **Categories**, each holding multiple **Reels** (videos). Browsing = pick a
@@ -59,7 +61,7 @@ thumbnail so the whole archive reads as one film stock. Lifts on hover to
 reveal original color. Do not apply per-video filters — one stock, everywhere.
 
 **Carousel** — the curved horizontal row of Tickets that a Category's Reels
-render in, winding between the hero wedge and the footer. It does not spin;
+render in, winding between the theater stage and the footer. It does not spin;
 it *moves
 horizontally*, driven by scrolling (its section maps scroll progress to
 sideways travel). Scrolling works everywhere; on touch, where scroll capture
@@ -87,7 +89,8 @@ Rates are px of card offset (`data-parallax-rate`).
 
 **Reel Mark** — the fixed top-centre reel-sprite chrome (ADR-0005). Purely
 decorative: it takes no input, never navigates, and only dresses for the
-film — ink over the hero, parked during the hero scrub, bone over the ink
+film — ink over the theater, parked through the theater card (its image is
+printed on the card itself as the **crest**, ADR-0014), bone over the ink
 archive, gone past "END OF REEL.". The footer's **FLIP IT OVER** is the page's
 only return-to-top control.
 
@@ -99,11 +102,19 @@ being inspected.
 session before the hero. A beam rises, the wordmark appears at its center,
 then the intro slides out to reveal the hero. Click to skip.
 
-**Hero Presentation** — the curator portrait section that introduces the
-archive. Contains the wordmark "Drishyakosh", the curator's name, and the
-tagline. Scrolls straight into the archive strip (its squeeze-scrub is the
-`[data-hero-scrub]` beat the Reel Mark parks through). Preceded by the
-**Prelude** (ADR-0007).
+**Theater Card** — the title-card hero that opens the Archive (ADR-0014,
+replacing the red taffy wall): closed red velvet curtains inside an ornate
+gold proscenium filling the viewport edge to edge, the DRISHYAKOSH marquee
+arched across the curtain, the reel-mark crest on its hairline rules, and
+the playbill block beneath ("curated by / estb. MMXXVI / the tagline").
+The curtains never
+part during browsing — the scroll *is* the act: the card arrives once, the
+lamp and velvet breathe through the pin, and the whole drape **raises from
+the bottom** at the act's end, revealing the bare stage the Carousel
+enters on. Owns the `[data-hero-scrub]` beat the Reel Mark parks through,
+where the mark instead appears **on the card** as the gold crest between
+the marquee and the credits.
+Preceded by the **Prelude** (ADR-0007).
 
 **Prelude** — the pre-hero introduction panel (ADR-0007): corner chrome
 (site wordmark left, the page's one ARCHIVE shortcut right), a graded
@@ -111,8 +122,11 @@ curator portrait dead-centre with collage chrome, the curator's
 introduction copy, and the **Threshold** beat. GSAP arrival beats on a
 single master timeline; per-element scroll drift hands it off to the hero.
 
-**Threshold** — the Prelude's last beat: "WELCOME TO", which completes into
-the red hero's DRISHYA/KOSH wordmark below the fold.
+**Threshold** — the Prelude's last beat: "WELCOME TO", which resolves into
+the red **Theater Card** that follows. It takes no scroll drift: it rides
+glued to the seam as the card's curtain world rises into view. (It once
+completed into the taffy hero's DRISHYA/KOSH wordmark — that pull is
+retired with the hero, ADR-0014.)
 
 **Sprockets** — *unwired (ADR-0008).* The photographed film strip that ran
 down both viewport edges (desktop only, cut from
@@ -140,7 +154,9 @@ Visual treatment follows a professional film archive aesthetic:
   saturated category spines (signal red · gold · teal · terracotta rust) at
   one lightness so they read equally vivid; ticket shadows are a cooler
   black than the page so paper floats above the charcoal.
-- **Typography**: Unbounded for display (wordmark, intertitles, titles —
+- **Typography**: Broadway for the theater wordmark (arched marquee),
+  Caslon Antique for its playbill credits and arch lines (ADR-0014);
+  Unbounded for display elsewhere (intertitles, titles, loader —
   Maghfirea retired, ADR-0010), NeueBrucke for metadata, NB International
   for body, P22 Parrish for pull-quotes, Litterbox for handwriting
 - **Transitions**: Subtle, purposeful — siena.film-inspired physics, but never distracting

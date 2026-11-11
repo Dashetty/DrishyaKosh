@@ -11,20 +11,22 @@ import { WordsStagger } from "@/components/WordsStagger";
 /**
  * Prelude — the pre-hero introduction (ADR-0007).
  *
- * One beat panel between the intro overlay and the red hero: the curator
- * says hello, a portrait arrives dead centre, collage nodes land around it,
- * and "WELCOME TO" arrives on the visitor's first scroll — the red hero's
- * DRISHYA/KOSH completes the sentence below (site mark left, the page's one
- * nav shortcut right).
+ * One beat panel between the intro overlay and the Theater card (ADR-0014):
+ * the curator says hello, a portrait arrives dead centre, collage nodes land
+ * around it, and "WELCOME TO" arrives on the visitor's first scroll — the
+ * card's arched DRISHYAKOSH marquee completes the sentence below (site mark
+ * left, the page's one nav shortcut right).
  *
  * Motion borrows Spell UI's blur-reveal / words-stagger techniques but runs
  * on the house GSAP engine. Chrome, "Hello there", the arrow, the portrait
  * ride one master timeline; every run of prose (name, copy, "Welcome to")
  * is a <WordsStagger> with its own delay. Both are gated on
- * the intro overlay's `dk:intro:done` event (started directly on session
+ * started directly on session
  * replays, where the overlay never runs). Per-element scroll drift hands
- * the panel off to the hero as it scrolls out — same rAF/scrub grammar as
- * the hero's wedge, no pin; the hero's own `top top` scrub is untouched.
+ * the panel off to the theater as it scrolls out — plain rAF drift, no pin.
+ * The Threshold is the exception: it takes no drift, riding glued to the
+ * seam so "WELCOME TO / DRISHYAKOSH" composes across the boundary as the
+ * card's curtain world rises into view.
  *
  * Every hidden state is in the server markup (inline style), never applied
  * post-hydration — otherwise the SSR paint shows the finished piece first
@@ -103,7 +105,11 @@ export function Prelude() {
       });
     });
 
-    // the beat group also fades on the way out, not just slides
+    // the beat group also fades on the way out — but late, and only on the
+    // final approach: the Threshold rides glued to the seam for the whole
+    // theater entry, composing "WELCOME TO / DRISHYAKOSH" across the
+    // section boundary as the card's curtain rises into view, and fades
+    // once the marquee has the stage to itself
     const welcome = root.querySelector("[data-prelude-welcome]");
     if (welcome) {
       const wf = gsap.to(welcome, {
@@ -111,8 +117,8 @@ export function Prelude() {
         ease: "none",
         scrollTrigger: {
           trigger: root,
-          start: "10% top",
-          end: "65% top",
+          start: "40% top",
+          end: "90% top",
           scrub: 0.4,
           invalidateOnRefresh: true,
         },
@@ -245,14 +251,6 @@ export function Prelude() {
       aria-label="Introduction"
       className="relative isolate z-10 flex min-h-[100svh] flex-col bg-ink"
     >
-      {/* angled ink→signal cut at the bottom edge — the same wedge grammar
-          the hero uses below itself, so the handoff keeps one move */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[10vh] bg-signal"
-        style={{ clipPath: "polygon(0% 72%, 100% 28%, 100% 100%, 0% 100%)" }}
-      />
-
       <div className="relative z-10 flex min-h-[100svh] flex-col px-6 pt-[calc(var(--nav-top)+env(safe-area-inset-top,0px))] pb-8 md:px-10">
         {/* corner chrome — decorative site mark left, the page's one nav
             shortcut right (ADR-0007) */}
@@ -465,12 +463,11 @@ export function Prelude() {
           </div>
         </div>
 
-        {/* last beat — the red hero completes the sentence below */}
-        <div
-          data-prelude-welcome=""
-          data-prelude-drift="-32"
-          className="text-center"
-        >
+        {/* last beat — the theater card's marquee completes the sentence
+            below. No drift on purpose: the Threshold rides with the page at
+            the same rate the card rises, holding a constant gap above the
+            curtain across the seam */}
+        <div data-prelude-welcome="" className="text-center">
           <p className="font-display text-[clamp(1.35rem,3.2vw,2.2rem)] tracking-[0.18em] text-bone uppercase">
             {/* ps = the trailing letter-spacing, so the line centres optically.
                 Held back until the visitor's first scroll. */}
