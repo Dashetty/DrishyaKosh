@@ -33,10 +33,10 @@ const cardState = (page: Page) =>
   });
 
 test.describe('Animation Flash Detection — Theater', () => {
-  test('no flash on initial load; the card arrives once', async ({ page }) => {
+  test('no flash on initial load; the card arrives once, in view', async ({ page }) => {
     await page.goto('http://localhost:3000');
     await page.waitForLoadState('networkidle');
-    // the intro alone takes ~2.2s; settle well past the arrival timeline
+    // the intro alone takes ~2.2s; settle past the intro handoff
     await page.waitForTimeout(5500);
 
     const hasIntroPendingNow = await page.evaluate(() =>
@@ -47,10 +47,25 @@ test.describe('Animation Flash Detection — Theater', () => {
       .isVisible()
       .catch(() => false);
 
-    const state = await cardState(page);
-    console.log('Results after 5.5s wait:');
+    // NEW CONTRACT (dark house + in-view gate, ADR-0014): the arrival
+    // must NOT play off-screen — at the Prelude the marquee is still
+    // unlit and the house still dark
+    const preState = await cardState(page);
+    console.log('Results while still at the Prelude:');
     console.log('  - intro-pending present:', hasIntroPendingNow);
-    console.log('  - LoadingScreen visible:', loadingScreenVisible);
+    console.log('  - letters still unlit:', preState.letters.every((l) => l.opacity < 1));
+    preState.letters.forEach((l) => expect(l.opacity).toBeLessThan(1));
+
+    // bring the theater on screen — the arrival plays in view
+    await page.evaluate(() => {
+      const root = document.querySelector('[data-hero-scrub]') as HTMLElement;
+      const top = root.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo(0, top + window.innerHeight * 0.5);
+    });
+    await page.waitForTimeout(5000); // settle well past the arrival
+
+    const state = await cardState(page);
+    console.log('Results after scrolling the theater into view:');
     console.log('  - letters settled:', state.letters.every((l) => l.opacity === 1));
     console.log('  - drape clip:', state.drapeClip);
 
@@ -61,13 +76,20 @@ test.describe('Animation Flash Detection — Theater', () => {
     // every marquee letter landed at full opacity — the arrival ran once
     expect(state.letters.length).toBe(11);
     state.letters.forEach((l) => expect(l.opacity).toBe(1));
-    // the drape is still down at scroll 0 (the act has not begun)
+    // the drape is still down (the act has not begun)
     expect(state.drapeClip).not.toContain('100%');
   });
 
   test('no double execution while idle; the raise completes once', async ({ page }) => {
     await page.goto('http://localhost:3000');
     await page.waitForLoadState('networkidle');
+    // the arrival now waits for the theater to enter view — bring it in
+    // and settle past the arrival before the idle check
+    await page.evaluate(() => {
+      const root = document.querySelector('[data-hero-scrub]') as HTMLElement;
+      const top = root.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo(0, top + window.innerHeight * 0.5);
+    });
     await page.waitForTimeout(5500);
 
     const initial = await cardState(page);

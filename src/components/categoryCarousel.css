@@ -32,6 +32,13 @@
   overflow: clip;
 }
 
+/* ACT II entrance — SSR-hidden until the entrance scrub reveals it
+   (ADR-0011: hidden states in SSR markup, not post-hydration hiding).
+   Reduced motion removes the class at mount; no-JS overrides it. */
+.deg-stage-enter {
+  opacity: 0;
+}
+
 /* Heading — top-left, sharing the deck's 6% gutter with the notes column */
 .deg-heading-box {
   position: absolute;

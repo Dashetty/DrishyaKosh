@@ -4,7 +4,7 @@ import { useEffect, useRef, type CSSProperties } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "@/lib/useReducedMotion";
-import { onIntroDone } from "@/lib/introGate";
+import { introDone, onIntroDone } from "@/lib/introGate";
 import { useLenisInstance } from "@/lib/smooth-scroll";
 import type Lenis from "lenis";
 
@@ -16,11 +16,16 @@ import type Lenis from "lenis";
  * spotlight pooling on the fabric, and the marquee typography arriving
  * over it. The curtain never parts — the scroll *is* the act:
  *
- *   arrival (plays once, gated on the intro overlay)
- *     the lamp STRIKES — a brief ignition flicker, like a projector
- *     finding its arc → spotlight blooms → the DRISHYAKOSH marquee
- *     settles letter by letter along its arc → corp. credit → the
- *     reel-mark crest → the playbill block (curated by / estb. / tagline)
+ *   arrival (plays once, gated on the intro overlay AND the theater
+ *   entering view — either can open first; a pin engage mid-arrival
+ *   fast-forwards it, and a 4s failsafe lights the house if the intro
+ *   never reports done)
+ *     the room SSR-renders DARK (.theater-house) — the lamp STRIKES
+ *     out of black (a projector strike only reads against a dark
+ *     house), a brief flicker like a lamp finding its arc → the dark
+ *     lifts as the spotlight blooms → the DRISHYAKOSH marquee settles
+ *     letter by letter along its arc → corp. credit → the reel-mark
+ *     crest → the playbill block (curated by / estb. / tagline)
  *   scroll (pinned, ~250svh, scrub 0.55, three acts)
  *     1. house settles — the lamp finds its mark, the velvet eases
  *     2. lights down — the room darkens around the lit card
@@ -83,7 +88,9 @@ export function Theater() {
   const motesRef = useRef<HTMLDivElement>(null);
   const dimRef = useRef<HTMLDivElement>(null);
   const ignitionRef = useRef<HTMLDivElement>(null);
+  const houseRef = useRef<HTMLDivElement>(null);
   const stagePoolRef = useRef<HTMLDivElement>(null);
+  const actTwoRef = useRef<HTMLDivElement>(null);
   const letterInnersRef = useRef<NodeListOf<HTMLElement> | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
   const reduced = useReducedMotion();
@@ -109,10 +116,13 @@ export function Theater() {
     const motes = motesRef.current;
     const dim = dimRef.current;
     const ignition = ignitionRef.current;
+    const house = houseRef.current;
     const stagePool = stagePoolRef.current;
+    const actTwo = actTwoRef.current;
     if (
       !root || !drape || !curtain || !swag || !frame || !type ||
-      !corp || !crest || !credits || !motes || !dim || !ignition || !stagePool
+      !corp || !crest || !credits || !motes || !dim || !ignition ||
+      !house || !stagePool || !actTwo
     )
       return;
 
@@ -134,21 +144,30 @@ export function Theater() {
       )
       .to(
         ignition,
-        // the lamp strike: two dips before the arc holds, then the flash
-        // burns off. (The halo's own opacity is owned by its CSS breathe
-        // animation — keyframes beat inline styles — so the strike gets
-        // a dedicated overlay that keys off the same lamp position.)
+        // the lamp strike: one bright flash dips out of the dark and
+        // burns off (≤3 flashes/sec — the accessibility limit; the
+        // strike reads enormously against the dark house, so it must
+        // stay calm). The halo's own opacity is owned by its CSS
+        // breathe animation — keyframes beat inline styles — so the
+        // strike gets a dedicated overlay that keys off the same lamp
+        // position.
         {
           keyframes: [
-            { opacity: 0.9, duration: 0.1 },
-            { opacity: 0.12, duration: 0.09 },
-            { opacity: 0.8, duration: 0.11 },
-            { opacity: 0.25, duration: 0.09 },
-            { opacity: 1, duration: 0.12 },
-            { opacity: 0, duration: 0.5, ease: "power2.in" },
+            { opacity: 0.9, duration: 0.18 },
+            { opacity: 0.12, duration: 0.15 },
+            { opacity: 0.85, duration: 0.2 },
+            { opacity: 0, duration: 0.55, ease: "power2.in" },
           ],
         },
         0.05
+      )
+      .fromTo(
+        house,
+        // the house was dark; the strike brings the light up. Runs under
+        // the flicker so the flashes erupt out of black.
+        { opacity: 0.88 },
+        { opacity: 0, duration: 1.6, ease: "power2.inOut" },
+        0.2
       )
       .fromTo(
         curtain,
@@ -205,7 +224,46 @@ export function Theater() {
     // in on its own delay; a GSAP opacity write would lose to the same
     // keyframes, exactly like the halo's)
 
-    const cancelIntroGate = onIntroDone(() => arrive.play());
+    /* ACT I plays in view: the intro must be done AND the theater in
+       view (once). Either can open first; the arrival fires when the
+       second does. */
+    let inView = false;
+    let introOver = introDone();
+    const maybePlay = () => {
+      if (inView && introOver) arrive.play();
+    };
+    const cancelIntroGate = onIntroDone(() => {
+      introOver = true;
+      maybePlay();
+    });
+    // failsafe: if the intro never reports done (a stuck overlay, slow
+    // JS), the house must not stay dark — light it ~4s after entering
+    // view regardless
+    let failsafe: ReturnType<typeof setTimeout> | undefined;
+    const arrivalGate = ScrollTrigger.create({
+      trigger: root,
+      start: "top 45%", // most of the theater on screen when the show starts
+      once: true,
+      onEnter: () => {
+        inView = true;
+        maybePlay();
+        failsafe = setTimeout(() => {
+          introOver = true;
+          maybePlay();
+        }, 4000);
+      },
+    });
+    // the arrival and the scrub can now overlap: if the pin engages
+    // while the arrival is still playing, fast-forward it — do NOT jump
+    // it to the end, a cut to the finished card would pop
+    const pinGate = ScrollTrigger.create({
+      trigger: root,
+      start: "top top",
+      once: true,
+      onEnter: () => {
+        if (arrive.progress() < 1) arrive.timeScale(4);
+      },
+    });
 
     /* the scroll composition — pinned, three acts, scrubbed.
        Scrub 0.55 (not the house 1.1): Lenis already owns the lag — see
@@ -213,7 +271,10 @@ export function Theater() {
        they double as the snap rest states. */
     const SETTLE = 0.3; // act 1 ends — the house has settled
     const LIGHTS_DOWN = 0.62; // act 2 ends — room dark, card lit, drape down
+    const RAISE_START = 0.7; // the raise begins — the drape clip starts
     const RAISE_END = 0.92; // the raise is complete — the stage rests bare
+    const FRAME_START = RAISE_START + 0.04; // the arch holds one beat,
+    // then dissolves with the fabric
 
     const rise = gsap.timeline({
       scrollTrigger: {
@@ -298,18 +359,18 @@ export function Theater() {
         { clipPath: "inset(0% 0% 0% 0%)" },
         {
           clipPath: "inset(0% 0% 100% 0%)",
-          duration: RAISE_END - 0.7,
+          duration: RAISE_END - RAISE_START,
           ease: "none",
         },
-        0.7
+        RAISE_START
       )
       // the fabric gathers upward faster than the reveal — tension, not
       // a flat wipe (the clip does the reveal, the translate hoists)
       .fromTo(
         drape,
         { yPercent: 0 },
-        { yPercent: -10, duration: RAISE_END - 0.7, ease: "none" },
-        0.7
+        { yPercent: -10, duration: RAISE_END - RAISE_START, ease: "none" },
+        RAISE_START
       )
       // the dust dies with the lamp — tween the SPANS' --o (the var their
       // CSS keyframes actually read); the container's own --o would be
@@ -326,8 +387,32 @@ export function Theater() {
         { opacity: 1, duration: RAISE_END - 0.78, ease: "power1.out" },
         0.78
       )
-      // the architecture clears the stage last
-      .to(frame, { autoAlpha: 0, duration: 0.04, ease: "none" }, RAISE_END);
+      // the architecture dissolves with the fabric it frames — one
+      // motion, both gone by RAISE_END (a late lone-frame fade read as
+      // an afterthought). Explicit from + immediateRender:false: never
+      // capture a mid-arrival opacity, and never stomp the arrival's
+      // hidden state at build time.
+      .fromTo(
+        frame,
+        { autoAlpha: 1 },
+        {
+          autoAlpha: 0,
+          duration: RAISE_END - FRAME_START,
+          ease: "power1.in",
+          immediateRender: false,
+        },
+        FRAME_START
+      )
+      // ACT II — the next act's label prints above the seam as the raise
+      // completes; the Archive's heading completes the sentence across
+      // it. Prints 0.86 → 0.92: settled at the snap's rest state, holds
+      // through the pin's last stretch.
+      .fromTo(
+        actTwo,
+        { autoAlpha: 0, y: 24 },
+        { autoAlpha: 1, y: 0, duration: 0.06, ease: "power1.out" },
+        0.86
+      );
 
     /* the raise's snap, by hand (ScrollTrigger's snap fights Lenis — see
        the header): when the visitor stops mid-raise, ease to the nearer
@@ -361,6 +446,9 @@ export function Theater() {
     return () => {
       alive = false;
       cancelIntroGate();
+      arrivalGate.kill();
+      pinGate.kill();
+      clearTimeout(failsafe);
       arrive.kill();
       rise.scrollTrigger?.kill();
       rise.kill();
@@ -374,7 +462,7 @@ export function Theater() {
       gsap.set(
         [
           root, drape, curtain, swag, frame, type, corp, crest, credits,
-          motes, dim, ignition, stagePool,
+          motes, dim, ignition, house, stagePool, actTwo,
         ],
         { clearProps: "all" }
       );
@@ -401,6 +489,11 @@ export function Theater() {
       }
     >
       <div className="sticky top-0 h-[100svh] overflow-hidden">
+        {/* no-JS failsafe: without GSAP the dark house never lifts —
+            show the velvet (the type layers are separately JS-gated) */}
+        <noscript>
+          <style>{`.theater-house{opacity:0 !important}`}</style>
+        </noscript>
         <h1 className="sr-only">
           DrishyaKosh — Curated YouTube Video collection by Hardeep Dilip Shetty
         </h1>
@@ -434,6 +527,16 @@ export function Theater() {
               className="h-full w-full object-cover"
             />
           </div>
+          {/* the dark house — SSR-renders the room near-black (ADR-0011:
+              hidden states in SSR markup); the arrival lifts it as the
+              lamp strikes. Inside the drape so the strike's screen-blend
+              sits above it and the raise clips it away with the fabric
+              (it rests at opacity 0). */}
+          <div
+            ref={houseRef}
+            className="theater-house"
+            style={staticCard ? undefined : { opacity: 0.88 }}
+          />
           {/* the lamp pool on the velvet */}
           <div data-theater-spot className="theater-spot" style={staticCard ? undefined : { opacity: 0 }} />
           {/* the lamp strike — GSAP flickers it out during the arrival */}
@@ -585,6 +688,37 @@ export function Theater() {
               If it&rsquo;s on here, it&rsquo;s worth the watch
             </p>
           </div>
+        </div>
+
+        {/* ACT II — the intertitle printed on the bare stage above the
+            seam; the Archive's own heading completes the sentence across
+            the boundary ("ACT II — / THE ARCHIVE"). One rule + a
+            seam-pointing tick — the phrase must read as continued, not
+            closed. Hidden rest state owned by the class (clearProps
+            trap — see .theater-dim). */}
+        <div
+          ref={actTwoRef}
+          aria-hidden
+          className="theater-act2 absolute inset-0 z-[38] flex flex-col items-center justify-end pb-[14svh]"
+        >
+          <div className="flex items-center gap-[1.4em] px-[8vw]">
+            <span aria-hidden className="h-px w-14 border-t border-hairline" />
+            {/* -mr compensates tracking-[0.5em]'s trailing space so the
+                glyphs sit centred; 0.95rem floor keeps it readable.
+                Inline color: .theater-type's own color beats the
+                text-smoke utility in stylesheet order */}
+            <span
+              className="theater-caslon theater-type -mr-[0.5em] text-[clamp(0.95rem,1.5vw,1.2rem)] tracking-[0.5em]"
+              style={{ color: "var(--color-smoke)" }}
+            >
+              ACT II
+            </span>
+          </div>
+          {/* the tick pointing down at the seam — the sentence continues */}
+          <span
+            aria-hidden
+            className="mt-[1.6em] block h-8 w-px border-l border-hairline"
+          />
         </div>
       </div>
     </section>

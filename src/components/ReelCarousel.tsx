@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "./categoryCarousel.css";
 import type { Category, Video } from "@/types";
 import { useLenisInstance } from "@/lib/smooth-scroll";
@@ -458,6 +459,49 @@ export function ReelCarousel({
     return () => mq.removeEventListener("change", onChange);
   }, [paint]);
 
+  // ACT II entrance — the stage rises out of the theater's seam as the
+  // section enters. The wrapper only: the slot engine owns the cards'
+  // transforms (single writer); paint() never touches the stage.
+  useEffect(() => {
+    const stage = stageRef.current;
+    const section = sectionRef.current;
+    if (!stage || !section) return;
+
+    // reduced motion gets the deck immediately — lift the SSR-hidden class
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      stage.classList.remove("deg-stage-enter");
+      return;
+    }
+
+    gsap.registerPlugin(ScrollTrigger);
+    const enter = gsap.fromTo(
+      stage,
+      { y: 64, autoAlpha: 0 },
+      {
+        y: 0,
+        autoAlpha: 1,
+        ease: "none",
+        scrollTrigger: {
+          trigger: section,
+          start: "top 88%",
+          end: "top 48%",
+          scrub: 0.5,
+          invalidateOnRefresh: true,
+        },
+        // GSAP must not leave a lingering transform on the stage: it
+        // changes how the slots' 3D, fixed children and z-ordering
+        // resolve inside it. Scrubbing backward re-applies it — this
+        // only cleans the settled end state.
+        onComplete: () => gsap.set(stage, { clearProps: "transform" }),
+      },
+    );
+    return () => {
+      enter.scrollTrigger?.kill();
+      enter.kill();
+      gsap.set(stage, { clearProps: "all" });
+    };
+  }, []);
+
   // main scroll + resize driver
   useEffect(() => {
     const stage = stageRef.current;
@@ -574,7 +618,11 @@ export function ReelCarousel({
       style={{ height: trackHeight(total) }}
       aria-label={heading}
     >
-      <div ref={stageRef} className="deg-stage">
+      <div ref={stageRef} className="deg-stage deg-stage-enter">
+        {/* no-JS failsafe: the SSR-hidden stage must not hide the deck */}
+        <noscript>
+          <style>{`.deg-stage-enter{opacity:1 !important}`}</style>
+        </noscript>
         {/* Heading — top-left, sits where the chooser will join it (P3) */}
         <div className="deg-heading-box">
           <h2 className="deg-heading">{heading}</h2>

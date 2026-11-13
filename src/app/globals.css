@@ -1015,6 +1015,18 @@ dialog::backdrop {
   }
 }
 
+/* the dark house — the unlit room the visitor scrolls into. Solid ink,
+   inside the drape so the lamp's screen-blend layers sit above it. The
+   class owns the lit rest state (opacity 0); the SSR inline 0.88 is the
+   dark state the arrival lifts. */
+.theater-house {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: oklch(0.09 0.012 55 / 1);
+}
+
 /* the ignition — the lamp strike, a one-shot overlay GSAP flickers
    (bright → dip → bright → dip → hold → burn off) during the arrival's
    first second, like a projector lamp finding its arc. Keys off the
@@ -1048,6 +1060,14 @@ dialog::backdrop {
     oklch(0.44 0.09 58 / 0.85) 0%,
     transparent 72%
   );
+}
+
+/* ACT II intertitle — prints on the bare stage above the seam in the
+   pin's final stretch; the Archive's heading completes the sentence
+   across the boundary. The class owns the hidden rest state (see
+   .theater-dim). */
+.theater-act2 {
+  opacity: 0;
 }
 
 /* lights down — act 2. The house darkens around the lit card; the

@@ -112,9 +112,15 @@ part during browsing — the scroll *is* the act, and the pin runs three of
 them: **the house settles** (the lamp finds its mark, the velvet eases),
 **the lights go down** (the room darkens around the lit card while the
 spotlight narrows onto it), and **the raise** — the type exits in reading
-order, then the whole drape **raises from the bottom**, revealing the bare
-stage the Carousel enters on. Stopping mid-raise snaps to the nearer rest
-state (through Lenis, so the engines agree — `?no-snap` opts out). Owns
+order, then the whole drape **raises from the bottom** (the proscenium
+dissolving with the fabric it frames), revealing the bare stage.
+The act begins only when it can be seen: the card arrives from a
+**dark house** (SSR-near-black, ADR-0011) once the intro is done *and*
+the theater is in view, the lamp striking out of black. Stopping
+mid-raise snaps to the nearer rest state (through Lenis, so the engines
+agree — `?no-snap` opts out). The pin's final stretch prints **ACT II**
+above the seam; the **Carousel's** heading and deck rise to complete the
+sentence. Owns
 the `[data-hero-scrub]` beat the Reel Mark parks through,
 where the mark instead appears **on the card** as the gold crest between
 the marquee and the credits.

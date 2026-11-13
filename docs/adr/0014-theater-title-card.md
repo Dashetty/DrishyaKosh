@@ -114,3 +114,44 @@ Consequences and traps hit along the way:
   (`?no-snap` so the raw scrub states are captured) plus two frames of
   the ignition flicker; the flicker was verified numerically (opacity
   samples 0 → 0.466 → 0.757 → 0). All 11 Playwright tests stay green.
+
+## Third screening — the seams (plans 0010–0012)
+
+The internal choreography was right; the *transitions* weren't. The
+Curator's review, vetted in code:
+
+- **ACT I never played in view.** The arrival fired on `onIntroDone`
+  — the moment the loader's exit *begins*, while the visitor was still
+  at the Prelude — and worse, the strike was invisible: the curtain
+  asset has baked-in lighting, and a screen-blend flicker cannot read
+  over an already-bright velvet. Fix (plan 0010): a `.theater-house`
+  dark overlay SSR-renders the room near-black (inside the drape, below
+  the screen-blend layers so the strike erupts out of black), and the
+  arrival now waits for the intro **and** the theater entering view
+  (`top 45%`, once) — with a `timeScale(4)` fast-forward if the pin
+  engages mid-arrival (never a jump-cut), a 4s failsafe, and a
+  `<noscript>` rule. The flicker was re-keyed to one dip + burn-off
+  (≤3 flashes/sec). The flash-detection tests now assert the new
+  contract: unlit letters at the Prelude, settled after scrolling in.
+- **The frame lingered alone** after the drape cleared. Fix (plan 0011):
+  the arch dissolves *with* the fabric — `fromTo` with an explicit
+  `autoAlpha: 1` start and `immediateRender: false` (no mid-arrival
+  capture, no stomp of the arrival's hidden state), `power1.in` so it
+  holds a beat, ending exactly at `RAISE_END`. (`FRAME_START` constant
+  beside the others.)
+- **The outro led nowhere.** Fix (plan 0012): the pin's final stretch
+  prints **"ACT II"** above the seam (smoke, not gold; one hairline + a
+  seam-pointing tick — the phrase reads as continued), settling
+  0.86 → 0.92 so it is fully printed **at the snap's rest state** (the
+  snap only ever fires between 0.62 and 0.92 — nothing pulls back from
+  beyond the raise). The Archive completes the sentence: the
+  carousel's stage rises out of the seam (`y 64 / autoAlpha` scrub,
+  `top 88%→48%`, scrub 0.5) on the **wrapper only** — the slot engine
+  keeps single-writer ownership of the cards — SSR-hidden via a
+  `.deg-stage-enter` class (removed under reduced motion, overridden by
+  `<noscript>`), and its settled transform is `clearProps`'d so the
+  stage's stacking context returns to normal.
+- Trap added to the ledger: stylesheet order beats class-attribute
+  order — `.theater-type`'s colour overrode the `text-smoke` utility;
+  the intertitle's colour is an inline `var(--color-smoke)`.
+- Plans live in `plans/0010-0012`; stills in `screenshots/`.
