@@ -60,3 +60,57 @@ the way one title card follows another.
   **shorthand**s into a trailing `@supports` block, whose shorthand reset
   un-clips `background-clip: text` — gradient text must use the
   `background-image` longhand. Hit once, documented in globals.css.
+
+## Second screening — the three-act choreography
+
+The first scrub had a dead zone: ~62% of the pin's travel went to
+imperceptible drifts (lamp 50%→46%, curtain 2.5%, type −4%) and all the
+visible change compressed into the last 38%. It also smoothed twice —
+Lenis (`lerp 0.09`) *and* the timeline (`scrub 1.1`) each lag the scroll,
+and two lags read floaty, not cinematic. The pin was re-choreographed as
+three acts on a single timeline, each third one idea:
+
+1. **House settles** (0–0.3) — the lamp finds its mark, the velvet eases.
+2. **Lights down** (0.3–0.62) — the room darkens around the lit card: a
+   `.theater-dim` overlay (z-36, above the vignette, below the type so
+   the marquee keeps glowing) fades to 0.65 and the spotlight *narrows*
+   onto the card via a new `--spot-r` custom property (46%→33%).
+3. **The raise** (0.7–0.92) — the type exits in reading order
+   (corp → crest → credits → marquee last), then the drape rises
+   (clip-path + a slightly faster fabric translate for tension); the
+   motes die with the lamp, the dim lifts, the spotlight widens (54%),
+   the stage pool blooms, and the frame fades last.
+
+Consequences and traps hit along the way:
+
+- **Scrub 0.55, not the house 1.1** — under Lenis, one lag is cinematic
+  and two is mush. The house `scrub: 1.1` convention was written for
+  native scroll; a Lenis page should scrub tighter. Deviation documented
+  here and in the Theater header.
+- **Snap by hand, not ScrollTrigger's `snap`** — the built-in snap tweens
+  `scrollTop`, which Lenis's ticker overwrites every frame; the engines
+  fight. The raise instead snaps on a 200 ms idle debounce through
+  `lenis.scrollTo` (Lenis's own target, so they agree), to the nearer of
+  the two rest states (LIGHTS_DOWN / RAISE_END) when progress is caught
+  between them. `?no-snap` opts out for QA sampling.
+- **CSS keyframes beat GSAP inline styles** — the halo's opacity is owned
+  by its CSS breathe animation, so GSAP's halo fade was a dead write
+  (removed); the motes' opacity likewise, so the raise kills them via the
+  `--o` var the keyframes read — on each mote **span**, not the container
+  (the spans' inline `--o` override the container's). Two dead writes,
+  both caught in screenshot QA.
+- **Blend isolation**: an ancestor with `opacity < 1` isolates its
+  descendants' `mix-blend-mode: screen` — the ignition flicker is its own
+  overlay (keyed off the same `--spot-x/--spot-y`), not a wrapper around
+  the halo.
+- **clearProps vs React-owned inline styles**: the teardown's
+  `clearProps: "all"` strips styles React set too, and React won't
+  rewrite an unchanged style prop on re-render — so (a) the stage pool's
+  gradient moved from inline style to a `.theater-stage-pool` class, and
+  (b) the dim/ignition overlays' hidden rest state (`opacity: 0`) moved
+  from inline style into their classes. Under reduced motion the still
+  was rendering the dim and ignition fully on until this fix.
+- **QA**: `scripts/theater-shots.mjs` samples 8 beats of the pin
+  (`?no-snap` so the raw scrub states are captured) plus two frames of
+  the ignition flicker; the flicker was verified numerically (opacity
+  samples 0 → 0.466 → 0.757 → 0). All 11 Playwright tests stay green.

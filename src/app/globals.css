@@ -980,14 +980,16 @@ dialog::backdrop {
   pointer-events: none;
   mix-blend-mode: screen;
   background: radial-gradient(
-    46% 40% at var(--spot-x, 50%) var(--spot-y, 30%),
+    var(--spot-r, 46%) 40% at var(--spot-x, 50%) var(--spot-y, 30%),
     oklch(0.88 0.12 85 / 0.5) 0%,
     oklch(0.78 0.14 70 / 0.22) 34%,
     transparent 68%
   );
 }
 
-/* the lamp's own halo — the bloom above the swag line */
+/* the lamp's own halo — the bloom above the swag line. Its opacity
+   belongs entirely to the breathe animation (keyframes beat inline
+   styles — GSAP never animates this element's opacity). */
 .theater-halo {
   position: absolute;
   inset-inline: 0;
@@ -996,7 +998,7 @@ dialog::backdrop {
   pointer-events: none;
   mix-blend-mode: screen;
   filter: blur(38px);
-  background: radial-gradient(
+  background-image: radial-gradient(
     42% 100% at 50% 0%,
     oklch(0.85 0.13 82 / 0.28) 0%,
     transparent 70%
@@ -1011,6 +1013,58 @@ dialog::backdrop {
   50% {
     opacity: 0.82;
   }
+}
+
+/* the ignition — the lamp strike, a one-shot overlay GSAP flickers
+   (bright → dip → bright → dip → hold → burn off) during the arrival's
+   first second, like a projector lamp finding its arc. Keys off the
+   same --spot-x/--spot-y the pool uses, so it dies where the light
+   lives. No CSS animation of its own — GSAP owns the whole life, and
+   the class itself owns the hidden rest state (opacity 0): inline
+   styles get clearProps'd and React won't rewrite an unchanged style
+   prop, so the default must live here. */
+.theater-ignition {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+  background-image: radial-gradient(
+    52% 46% at var(--spot-x, 50%) var(--spot-y, 30%),
+    oklch(0.92 0.13 88 / 0.55) 0%,
+    oklch(0.82 0.15 75 / 0.25) 38%,
+    transparent 70%
+  );
+}
+
+/* the stage pool — the lamp's reward on the bare boards after the drape
+   clears. A CSS class, not an inline style: GSAP's clearProps would
+   strip a React-owned inline background on StrictMode's second mount.
+   background-image longhand (Lightning CSS hoists oklch shorthands). */
+.theater-stage-pool {
+  opacity: 0.6;
+  background-image: radial-gradient(
+    62% 48% at 50% 46%,
+    oklch(0.44 0.09 58 / 0.85) 0%,
+    transparent 72%
+  );
+}
+
+/* lights down — act 2. The house darkens around the lit card; the
+   overlay sits above the vignette and below the type (z-36 < z-38), so
+   the room dims while the marquee keeps glowing. Hidden by default —
+   the class owns the rest state (see .theater-ignition). */
+.theater-dim {
+  position: absolute;
+  inset: 0;
+  z-index: 36;
+  pointer-events: none;
+  opacity: 0;
+  background-image: radial-gradient(
+    80% 70% at 50% 44%,
+    oklch(0.09 0.012 55 / 0.3) 0%,
+    oklch(0.06 0.012 55 / 1) 80%
+  );
 }
 
 /* stage vignette — melts the photo's edges into the ink around it */

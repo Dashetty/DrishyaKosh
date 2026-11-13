@@ -108,10 +108,14 @@ gold proscenium filling the viewport edge to edge, the DRISHYAKOSH marquee
 arched across the curtain, the reel-mark crest on its hairline rules, and
 the playbill block beneath ("curated by / estb. MMXXVI / the tagline").
 The curtains never
-part during browsing — the scroll *is* the act: the card arrives once, the
-lamp and velvet breathe through the pin, and the whole drape **raises from
-the bottom** at the act's end, revealing the bare stage the Carousel
-enters on. Owns the `[data-hero-scrub]` beat the Reel Mark parks through,
+part during browsing — the scroll *is* the act, and the pin runs three of
+them: **the house settles** (the lamp finds its mark, the velvet eases),
+**the lights go down** (the room darkens around the lit card while the
+spotlight narrows onto it), and **the raise** — the type exits in reading
+order, then the whole drape **raises from the bottom**, revealing the bare
+stage the Carousel enters on. Stopping mid-raise snaps to the nearer rest
+state (through Lenis, so the engines agree — `?no-snap` opts out). Owns
+the `[data-hero-scrub]` beat the Reel Mark parks through,
 where the mark instead appears **on the card** as the gold crest between
 the marquee and the credits.
 Preceded by the **Prelude** (ADR-0007).

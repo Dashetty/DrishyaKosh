@@ -5,6 +5,8 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { onIntroDone } from "@/lib/introGate";
+import { useLenisInstance } from "@/lib/smooth-scroll";
+import type Lenis from "lenis";
 
 /**
  * Theater — ACT I, the opening title card (replaces the taffy hero).
@@ -15,21 +17,34 @@ import { onIntroDone } from "@/lib/introGate";
  * over it. The curtain never parts — the scroll *is* the act:
  *
  *   arrival (plays once, gated on the intro overlay)
- *     spotlight blooms → the DRISHYAKOSH marquee settles letter by letter
- *     along its arc → corp. credit → the reel-mark crest → the playbill
- *     block (curated by / estb. / tagline)
- *   scroll (pinned, ~250svh, scrub 1.1)
- *     the lamp drifts, the velvet parallax-drifts, the card breathes;
- *     in the last third the credits dim and the whole drape — curtain,
- *     valance and all — RISES from the bottom (clip-path inset, the
- *     fringe carrying the wipe) revealing the bare stage, and the frame
- *     fades as the act ends. The carousel arrives on the empty stage.
+ *     the lamp STRIKES — a brief ignition flicker, like a projector
+ *     finding its arc → spotlight blooms → the DRISHYAKOSH marquee
+ *     settles letter by letter along its arc → corp. credit → the
+ *     reel-mark crest → the playbill block (curated by / estb. / tagline)
+ *   scroll (pinned, ~250svh, scrub 0.55, three acts)
+ *     1. house settles — the lamp finds its mark, the velvet eases
+ *     2. lights down — the room darkens around the lit card
+ *     3. the raise — the card exits in reading order, then the whole
+ *        drape — curtain, valance and all — RISES from the bottom
+ *        (clip-path inset, the fringe carrying the wipe) revealing the
+ *        bare stage; the house lights come back up as it clears, and
+ *        the frame fades as the act ends
+ *     the raise snaps to its two rest states when the visitor stops
+ *     mid-raise (through lenis.scrollTo — see below)
  *
- * Choreography rules: the type only drifts with the pin's pre-rise phase
- * and fades before the wipe — it never rides the raise itself; the drape
+ * Choreography rules: the type only drifts with the pre-rise acts and
+ * fades before the wipe — it never rides the raise itself; the drape
  * rises via clip-path alone — no layout properties animate; the letters'
  * arc placement is a static CSS transform (outer span) that GSAP never
  * touches (it animates the inner span's own transforms).
+ *
+ * Scrub 0.55, not the house 1.1: Lenis already owns the scroll lag
+ * (lerp 0.09) and a second smoothing pass reads floaty — one lag is
+ * cinematic, two is mush. For the same reason the raise's snap is done
+ * by hand: ScrollTrigger's built-in snap tweens scrollTop, which Lenis's
+ * ticker overwrites every frame — they fight. Snapping through
+ * lenis.scrollTo sets Lenis's own target, so the engines agree.
+ * (`?no-snap` disables the snap for QA sampling.)
  *
  * reduced motion: the finished card, fully visible, no pin — the theater
  * reads as a still.
@@ -66,8 +81,19 @@ export function Theater() {
   const crestRef = useRef<HTMLDivElement>(null);
   const creditsRef = useRef<HTMLDivElement>(null);
   const motesRef = useRef<HTMLDivElement>(null);
+  const dimRef = useRef<HTMLDivElement>(null);
+  const ignitionRef = useRef<HTMLDivElement>(null);
+  const stagePoolRef = useRef<HTMLDivElement>(null);
   const letterInnersRef = useRef<NodeListOf<HTMLElement> | null>(null);
+  const lenisRef = useRef<Lenis | null>(null);
   const reduced = useReducedMotion();
+  const lenis = useLenisInstance();
+
+  // the snap must reach Lenis from inside the effect; the instance is
+  // published async by SmoothScroll, so mirror it on every render
+  useEffect(() => {
+    lenisRef.current = lenis;
+  }, [lenis]);
 
   useEffect(() => {
     if (reduced) return;
@@ -81,10 +107,18 @@ export function Theater() {
     const crest = crestRef.current;
     const credits = creditsRef.current;
     const motes = motesRef.current;
-    if (!root || !drape || !curtain || !swag || !frame || !type || !corp || !crest || !credits || !motes) return;
+    const dim = dimRef.current;
+    const ignition = ignitionRef.current;
+    const stagePool = stagePoolRef.current;
+    if (
+      !root || !drape || !curtain || !swag || !frame || !type ||
+      !corp || !crest || !credits || !motes || !dim || !ignition || !stagePool
+    )
+      return;
 
     const letterInners = (letterInnersRef.current ??=
       root.querySelectorAll<HTMLElement>("[data-arch-letter]"));
+    const moteSpans = motes.querySelectorAll<HTMLElement>(".theater-mote");
 
     gsap.registerPlugin(ScrollTrigger);
 
@@ -98,11 +132,23 @@ export function Theater() {
         { opacity: 1, duration: 1.4, ease: "power2.out" },
         0
       )
-      .fromTo(
-        root.querySelector("[data-theater-halo]"),
-        { opacity: 0 },
-        { opacity: 1, duration: 1.6, ease: "power2.out" },
-        0.15
+      .to(
+        ignition,
+        // the lamp strike: two dips before the arc holds, then the flash
+        // burns off. (The halo's own opacity is owned by its CSS breathe
+        // animation — keyframes beat inline styles — so the strike gets
+        // a dedicated overlay that keys off the same lamp position.)
+        {
+          keyframes: [
+            { opacity: 0.9, duration: 0.1 },
+            { opacity: 0.12, duration: 0.09 },
+            { opacity: 0.8, duration: 0.11 },
+            { opacity: 0.25, duration: 0.09 },
+            { opacity: 1, duration: 0.12 },
+            { opacity: 0, duration: 0.5, ease: "power2.in" },
+          ],
+        },
+        0.05
       )
       .fromTo(
         curtain,
@@ -154,52 +200,97 @@ export function Theater() {
         { autoAlpha: 0, y: 14 },
         { autoAlpha: 1, y: 0, duration: 0.75, stagger: 0.14 },
         1.85
-      )
-      .fromTo(motes, { opacity: 0 }, { opacity: 1, duration: 1.2 }, 2.2);
+      );
+    // (the motes need no arrival tween — their CSS cycle brings each one
+    // in on its own delay; a GSAP opacity write would lose to the same
+    // keyframes, exactly like the halo's)
 
     const cancelIntroGate = onIntroDone(() => arrive.play());
 
-    /* the scroll composition — pinned, scrubbed */
+    /* the scroll composition — pinned, three acts, scrubbed.
+       Scrub 0.55 (not the house 1.1): Lenis already owns the lag — see
+       the header. Beat boundaries are fractions of the pin's timeline;
+       they double as the snap rest states. */
+    const SETTLE = 0.3; // act 1 ends — the house has settled
+    const LIGHTS_DOWN = 0.62; // act 2 ends — room dark, card lit, drape down
+    const RAISE_END = 0.92; // the raise is complete — the stage rests bare
+
     const rise = gsap.timeline({
       scrollTrigger: {
         trigger: root,
         start: "top top",
         end: "bottom bottom",
-        scrub: 1.1,
+        scrub: 0.55,
         anticipatePin: 1,
         invalidateOnRefresh: true,
       },
     });
 
-    const riseSpan = 0.62; // the rise itself — the last ~1/3 of the pin
-    const pre = 1 - riseSpan;
-
     rise
-      // the lamp wanders; the velvet breathes against it
+      // ACT 1 — house settles: the lamp finds its mark, the velvet eases
       .fromTo(
         root,
         { "--spot-x": "50%", "--spot-y": "30%" },
-        { "--spot-x": "46%", "--spot-y": "40%", ease: "none", duration: pre },
+        {
+          "--spot-x": "47.5%",
+          "--spot-y": "33.5%",
+          ease: "power1.inOut",
+          duration: SETTLE,
+        },
         0
       )
-      // the lamp wanders; the velvet drifts against it. yPercent only —
-      // the curtain's scale is owned by the arrival zoom (single writer)
       .fromTo(
         curtain,
         { yPercent: 0 },
-        { yPercent: 2.5, ease: "none", duration: pre },
+        { yPercent: 1.2, ease: "power1.inOut", duration: SETTLE },
         0
       )
       .fromTo(
         type,
         { yPercent: 0 },
-        { yPercent: -4, ease: "none", duration: pre },
+        { yPercent: -1, ease: "power1.inOut", duration: SETTLE },
         0
       )
-      // the card dims before the drape moves — type never rides the wipe
-      .to(corp, { autoAlpha: 0, y: -10, duration: 0.08 * riseSpan, ease: "none" }, pre)
-      .to(credits, { autoAlpha: 0, y: -12, duration: 0.1 * riseSpan, ease: "none" }, pre)
-      .to(type, { autoAlpha: 0, duration: 0.06 * riseSpan, ease: "none" }, pre + 0.1 * riseSpan)
+      // ACT 2 — lights down: the room darkens around the lit card (the
+      // dim overlay sits under the type — the marquee keeps glowing)
+      .fromTo(
+        dim,
+        { opacity: 0 },
+        { opacity: 0.65, ease: "power1.inOut", duration: LIGHTS_DOWN - SETTLE },
+        SETTLE
+      )
+      // the lamp narrows onto the card as the house goes dark
+      .fromTo(
+        root,
+        { "--spot-r": "46%" },
+        { "--spot-r": "33%", ease: "power1.inOut", duration: LIGHTS_DOWN - SETTLE },
+        SETTLE
+      )
+      .to(
+        root,
+        {
+          "--spot-x": "48.5%",
+          "--spot-y": "36%",
+          ease: "power1.inOut",
+          duration: LIGHTS_DOWN - SETTLE,
+        },
+        SETTLE
+      )
+      .to(
+        curtain,
+        { yPercent: 2.2, ease: "power1.inOut", duration: LIGHTS_DOWN - SETTLE },
+        SETTLE
+      )
+      .to(
+        type,
+        { yPercent: -2.5, ease: "power1.inOut", duration: LIGHTS_DOWN - SETTLE },
+        SETTLE
+      )
+      // ACT 3 — the raise: the card exits in reading order, marquee last
+      .to(corp, { autoAlpha: 0, y: -8, duration: 0.04, ease: "none" }, LIGHTS_DOWN)
+      .to(crest, { autoAlpha: 0, duration: 0.04, ease: "none" }, LIGHTS_DOWN + 0.02)
+      .to(credits, { autoAlpha: 0, y: -10, duration: 0.05, ease: "none" }, LIGHTS_DOWN + 0.03)
+      .to(type, { autoAlpha: 0, duration: 0.04, ease: "none" }, LIGHTS_DOWN + 0.06)
       // THE RAISE — bottom inset grows; the fringe carries the wipe up.
       // clip-path only: compositor-safe, no layout property touched.
       .fromTo(
@@ -207,22 +298,60 @@ export function Theater() {
         { clipPath: "inset(0% 0% 0% 0%)" },
         {
           clipPath: "inset(0% 0% 100% 0%)",
-          duration: 0.82 * riseSpan,
+          duration: RAISE_END - 0.7,
           ease: "none",
         },
-        pre + 0.18 * riseSpan
+        0.7
       )
-      // the fabric gathers upward as it rises — the clip does the reveal,
-      // the translate does the hoisting
+      // the fabric gathers upward faster than the reveal — tension, not
+      // a flat wipe (the clip does the reveal, the translate hoists)
       .fromTo(
         drape,
         { yPercent: 0 },
-        { yPercent: -9, duration: 0.82 * riseSpan, ease: "none" },
-        pre + 0.18 * riseSpan
+        { yPercent: -10, duration: RAISE_END - 0.7, ease: "none" },
+        0.7
       )
-      .to(motes, { opacity: 0, duration: 0.3 * riseSpan, ease: "none" }, pre + 0.2 * riseSpan)
+      // the dust dies with the lamp — tween the SPANS' --o (the var their
+      // CSS keyframes actually read); the container's own --o would be
+      // overridden by each span's inline value, and an inline opacity
+      // write would lose to the keyframes entirely
+      .to(moteSpans, { "--o": 0, duration: 0.1, ease: "none" }, 0.72)
+      // house lights back up as the curtain clears — the reveal's reward:
+      // the dim lifts and the lamp opens wide over the bare stage
+      .to(dim, { opacity: 0, duration: 0.1, ease: "power1.inOut" }, 0.8)
+      .to(root, { "--spot-r": "54%", duration: RAISE_END - 0.8, ease: "power1.out" }, 0.8)
+      .fromTo(
+        stagePool,
+        { opacity: 0.6 },
+        { opacity: 1, duration: RAISE_END - 0.78, ease: "power1.out" },
+        0.78
+      )
       // the architecture clears the stage last
-      .to(frame, { autoAlpha: 0, duration: 0.12 * riseSpan, ease: "none" }, pre + 0.88 * riseSpan);
+      .to(frame, { autoAlpha: 0, duration: 0.04, ease: "none" }, RAISE_END);
+
+    /* the raise's snap, by hand (ScrollTrigger's snap fights Lenis — see
+       the header): when the visitor stops mid-raise, ease to the nearer
+       rest state — the settled card or the bare stage. ?no-snap opts out
+       for QA sampling of the raw scrub states. */
+    const snapEnabled =
+      !new URLSearchParams(window.location.search).has("no-snap");
+    let snapTimer: ReturnType<typeof setTimeout> | undefined;
+    const snapToRest = () => {
+      const st = rise.scrollTrigger;
+      if (!st) return;
+      const p = st.progress;
+      if (p <= LIGHTS_DOWN || p >= RAISE_END) return;
+      const rest = p - LIGHTS_DOWN < RAISE_END - p ? LIGHTS_DOWN : RAISE_END;
+      const y = st.start + (st.end - st.start) * rest;
+      const l = lenisRef.current;
+      if (l) l.scrollTo(y, { duration: 0.7, easing: (t) => 1 - Math.pow(1 - t, 2) });
+      else window.scrollTo({ top: y, behavior: "smooth" });
+    };
+    const onScrollIdle = () => {
+      clearTimeout(snapTimer);
+      if (snapEnabled) snapTimer = setTimeout(snapToRest, 200);
+    };
+    window.addEventListener("scroll", onScrollIdle, { passive: true });
 
     let alive = true;
     document.fonts?.ready.then(() => {
@@ -235,13 +364,18 @@ export function Theater() {
       arrive.kill();
       rise.scrollTrigger?.kill();
       rise.kill();
+      clearTimeout(snapTimer);
+      window.removeEventListener("scroll", onScrollIdle);
       // targeted teardown: strip exactly the inline styles GSAP wrote —
       // including the credits' CHILDREN (the arrival fromTo's
       // immediateRender writes their hidden from-state even on a paused
       // timeline, and the reduced flip re-renders them clean in JSX; a
       // container-only clearProps would leave them invisible forever)
       gsap.set(
-        [root, drape, curtain, swag, frame, type, corp, crest, credits, motes],
+        [
+          root, drape, curtain, swag, frame, type, corp, crest, credits,
+          motes, dim, ignition, stagePool,
+        ],
         { clearProps: "all" }
       );
       gsap.set(credits.children, { clearProps: "all" });
@@ -274,11 +408,8 @@ export function Theater() {
         {/* the bare stage — what the rising curtain reveals */}
         <div aria-hidden className="absolute inset-0 bg-ink">
           <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(60% 46% at 50% 46%, oklch(0.34 0.06 55 / 0.62) 0%, transparent 70%)",
-            }}
+            ref={stagePoolRef}
+            className="theater-stage-pool absolute inset-0"
           />
           <div className="light-leak left-[30%] top-[20%] h-[46%] w-[40%]" />
         </div>
@@ -305,6 +436,8 @@ export function Theater() {
           </div>
           {/* the lamp pool on the velvet */}
           <div data-theater-spot className="theater-spot" style={staticCard ? undefined : { opacity: 0 }} />
+          {/* the lamp strike — GSAP flickers it out during the arrival */}
+          <div ref={ignitionRef} className="theater-ignition" />
           {/* the valance, graded to the curtain's shadow depth */}
           <div
             ref={swagRef}
@@ -324,8 +457,9 @@ export function Theater() {
               }}
             />
           </div>
-          {/* the lamp's bloom above the swag line */}
-          <div data-theater-halo className="theater-halo" style={staticCard ? undefined : { opacity: 0 }} />
+          {/* the lamp's bloom above the swag line — its opacity is owned
+              by its own CSS breathe (keyframes beat inline styles) */}
+          <div className="theater-halo" />
         </div>
 
         {/* dust in the lamp cone — floats with the room, not the fabric */}
@@ -364,8 +498,10 @@ export function Theater() {
           style={staticCard ? undefined : { opacity: 0 }}
         />
 
-        {/* vignette melts the photo into the matte */}
+        {/* vignette melts the photo into the ink around it */}
         <div aria-hidden className="theater-vignette absolute inset-0 z-[35]" />
+        {/* lights down (act 2) — darkens the room, sits under the type */}
+        <div ref={dimRef} aria-hidden className="theater-dim" />
 
         {/* THE CARD — drifts gently in the pin's pre-rise, fades before
             the wipe; never rides the raise itself */}
